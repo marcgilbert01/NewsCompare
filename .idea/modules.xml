@@ -4,7 +4,6 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/NewsCompare.iml" filepath="$PROJECT_DIR$/NewsCompare.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/libnaturallanguage/libnaturallanguage.iml" filepath="$PROJECT_DIR$/libnaturallanguage/libnaturallanguage.iml" />
       <module fileurl="file://$PROJECT_DIR$/marcviews/marcviews.iml" filepath="$PROJECT_DIR$/marcviews/marcviews.iml" />
     </modules>
   </component>
