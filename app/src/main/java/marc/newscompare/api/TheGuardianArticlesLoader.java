@@ -1,4 +1,4 @@
-package marc.newscompare.NewsApi;
+package marc.newscompare.api;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -30,9 +30,10 @@ public class TheGuardianArticlesLoader extends ArticlesLoader{
 
     static final String RSS_URL = "http://www.theguardian.com/uk/rss";
 
-    List<Article> articles = new ArrayList<Article>();
 
-    public List<Article> getNewArticlesFromRss(){
+
+    @Override
+    public List<Article> getNewArticles() {
 
         List<Article> newArticles = new ArrayList<Article>();
 
@@ -75,12 +76,12 @@ public class TheGuardianArticlesLoader extends ArticlesLoader{
                     dateStr = dateStr.replaceAll("T", " ").replaceAll("Z", "");
                     Date date = simpleDateFormat.parse(dateStr);
                     article.date = date.getTime();
-                    // KEYWORDS
-                    NodeList nodeListCategories = elementItem.getElementsByTagName("category");
-                    article.categories = new String[nodeListCategories.getLength()];
-                    for (int c = 0; c < article.categories.length; c++) {
-                        article.categories[c] = nodeListCategories.item(c).getTextContent();
-                    }
+                    // CATEGORIES
+                    //NodeList nodeListCategories = elementItem.getElementsByTagName("category");
+                    //article.categories = new String[nodeListCategories.getLength()];
+                    //for (int c = 0; c < article.categories.length; c++) {
+                    //    article.categories[c] = nodeListCategories.item(c).getTextContent();
+                    //}
                     // IMAGES
                     NodeList nodeListMediaContent = elementItem.getElementsByTagName("media:content");
                     article.bitmaps = new Bitmap[nodeListMediaContent.getLength()];
@@ -103,19 +104,8 @@ public class TheGuardianArticlesLoader extends ArticlesLoader{
             e.printStackTrace();
         }
 
-        // ADD NEW ARTICLES TO ALL ARTICLES
-        articles.addAll(newArticles);
-
         return newArticles;
 
-    }
-
-
-
-
-
-    @Override
-    public void loadArticles(long maxAge, ArticleLoaderCallBack articleLoaderCallBack) {
     }
 
 

@@ -1,13 +1,14 @@
-package marc.newscompare.NewsApi;
+package marc.newscompare.api;
 
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
+
+import marc.newscompare.dao.NewsDb;
 
 /**
  * Created by gilbertm on 10/03/2016.
@@ -15,14 +16,20 @@ import java.net.URLEncoder;
 public abstract class ArticlesLoader {
 
 
-    abstract public void loadArticles( long maxAge , ArticleLoaderCallBack articleLoaderCallBack);
+    List<Article> articles = new ArrayList<>();
 
-    interface ArticleLoaderCallBack{
 
-        public void onArticlesLoaded(Article[] articles);
+    public Article.NewsPaper getNewsPaperType(){
 
+        Article.NewsPaper newsPaper= null;
+        for(Article.NewsPaper newsPaper1 : Article.NewsPaper.values()){
+            if( newsPaper.articlesLoader==this ){
+                newsPaper = newsPaper1;
+            }
+        }
+
+        return newsPaper;
     }
-
 
 
 
@@ -51,6 +58,9 @@ public abstract class ArticlesLoader {
         return data;
     }
 
+
+
+    abstract public List<Article> getNewArticles(List<Article> existingArticles);
 
 
 
