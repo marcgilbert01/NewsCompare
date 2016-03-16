@@ -23,18 +23,16 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 /**
- * Created by gilbertm on 10/03/2016.
+ * Created by gilbertm on 16/03/2016.
  */
+public class TheDailyMailArticlesLoader extends ArticlesLoader{
 
-public class TheGuardianArticlesLoader extends ArticlesLoader{
-
-    static final String RSS_URL = "http://www.theguardian.com/uk/rss";
+    static final String RSS_URL = "http://www.dailymail.co.uk/home/index.rss";
 
     @Override
-    public List<Article> getNewArticles(List<Article> existingArticles ) {
+    public List<Article> getNewArticles(List<Article> existingArticles) {
 
-
-        List<Article> newArticles = new ArrayList<Article>();
+        List<Article> newArticles = new ArrayList<>();
 
         // READ DATA FROM RSS FEED
         String rssData = null;
@@ -64,6 +62,8 @@ public class TheGuardianArticlesLoader extends ArticlesLoader{
 
 
 
+
+
     public List<Article> parseNewArticles(String xml , List<Article> existingArticles ) throws ParserConfigurationException, IOException, SAXException, ParseException {
 
         if( existingArticles!=null ){
@@ -73,15 +73,18 @@ public class TheGuardianArticlesLoader extends ArticlesLoader{
             articles = new ArrayList<>();
         }
 
-
         List<Article> articles = new ArrayList<>();
 
-        //
+        // PARSE XML
         DocumentBuilder documentBuilder = null;
         documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-        Document document = documentBuilder.parse(new InputSource( new StringReader(xml)));
+        Document document = documentBuilder.parse(new InputSource(new StringReader(xml)));
+
+        // GO THROUGH ELEMENTS
         NodeList nodeListItems = document.getElementsByTagName("item");
-        SimpleDateFormat simpleDateFormat   = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat simpleDateFormat   = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z");
+//                                                                 "Wed, 16 Mar 2016 13:19:34 +0000"
+
 
         for( int i=0 ; i<nodeListItems.getLength() ; i++ ){
 
@@ -99,18 +102,18 @@ public class TheGuardianArticlesLoader extends ArticlesLoader{
                     a++;
                 }
             }
+
             // LOAD INFO
             if( alreadyLoaded == false ) {
 
                 Article article = new Article();
-                article.newsPaper = Article.NewsPaper.THE_GUARDIAN;
+                article.newsPaper = Article.NewsPaper.THE_DAILY_MAIL;
                 // TITLE, DESCRIPTION, AUTHOR
                 article.title = elementItem.getElementsByTagName("title").item(0).getTextContent();
                 article.description = elementItem.getElementsByTagName("description").item(0).getTextContent();
-                article.author = elementItem.getElementsByTagName("dc:creator").item(0).getTextContent();
+                article.author = elementItem.getElementsByTagName("media:credit").item(0).getTextContent();
                 // DATE
-                String dateStr = elementItem.getElementsByTagName("dc:date").item(0).getTextContent();
-                dateStr = dateStr.replaceAll("T", " ").replaceAll("Z", "");
+                String dateStr = elementItem.getElementsByTagName("pubDate").item(0).getTextContent();
                 Date date = simpleDateFormat.parse(dateStr);
                 article.date = date.getTime();
                 // CATEGORIES
@@ -133,7 +136,6 @@ public class TheGuardianArticlesLoader extends ArticlesLoader{
                     bitmap = null;
                 }
 
-
                 articles.add(article);
             }
         }
@@ -141,38 +143,8 @@ public class TheGuardianArticlesLoader extends ArticlesLoader{
         return articles;
     }
 
-/*
-    <item>
-        <title>
-        BBC presenter Jeremy Vine pictured riding a bike without a helmet in London
-        </title>
 
-        <link>
-        http://www.dailymail.co.uk/news/article-3495075/Tut-tut-Jeremy-BBC-presenter-Jeremy-Vine-comes-fire-pictured-riding-bike-without-helmet-London.html?ITO=1490&amp;ns_mchannel=rss&amp;ns_campaign=1490
-        </link>
 
-        <description>
-        The Radio 2 host was captured on camera as he waited at traffic lights on The Strand on his 'Boris Bike', but he was quickly criticised when people spotted that he was not wearing a helmet.
-        </description>
-
-        <enclosure url="http://i.dailymail.co.uk/i/pix/2016/03/16/13/323FD41000000578-0-image-m-157_1458133256539.jpg" type="image/jpeg" length="7506"/>
-
-        <pubDate>Wed, 16 Mar 2016 13:19:34 +0000</pubDate>
-
-        <guid>
-        http://www.dailymail.co.uk/news/article-3495075/Tut-tut-Jeremy-BBC-presenter-Jeremy-Vine-comes-fire-pictured-riding-bike-without-helmet-London.html?ITO=1490&amp;ns_mchannel=rss&amp;ns_campaign=1490
-        </guid>
-
-        <media:description></media:description>
-
-        <media:thumbnail url="http://i.dailymail.co.uk/i/pix/2016/03/16/13/323FD41000000578-0-image-m-157_1458133256539.jpg" width="154" height="115"/>
-
-        <media:credit scheme="urn:ebu">None</media:credit>
-
-        <media:content type="image/jpeg" url="http://i.dailymail.co.uk/i/pix/2016/03/16/13/323FD41000000578-0-image-m-157_1458133256539.jpg"/>
-
-    </item>
-*/
 
 
 

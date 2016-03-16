@@ -28,19 +28,26 @@ public class NewsRecorderThread extends Thread{
 
             NewsDb newsDb = new NewsDb(context);
 
-            // FOR EACH
+            // FOR EACH NEWSPAPER
             for (Article.NewsPaper newsPaper : Article.NewsPaper.values()) {
 
-                // GET EXISTING ARTICLE FROM DB
+                // GET EXISTING ARTICLES FROM DB
                 List<Article> existingArticles = newsDb.getArticles( 0L , newsPaper );
-                // GET NEW ARTICLES
+                // GET NEW ARTICLES FROM RSS FEED
                 ArticlesLoader articlesLoader = newsPaper.getArticlesLoader();
                 List<Article> newArticles = articlesLoader.getNewArticles( existingArticles );
                 // SAVE NEW ARTICLES TO DB
                 newsDb.saveArticles( newArticles );
-
             }
 
+            // SLEEP FOR 1 HOUR
+            try {
+                sleep( 60*3600*1000 );
+                //sleep( 10000 );
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
 
     }

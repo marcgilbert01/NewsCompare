@@ -7,6 +7,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.os.Environment;
 
+import org.apache.commons.lang.StringEscapeUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,32 +54,34 @@ public class NewsDb extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
     }
 
-    public void saveArticles(List<Article> articlesList) {
-        if (articlesList != null && articlesList.size() > 0) {
+    public void saveArticles(List<Article> articles) {
+
+        if (articles != null && articles.size() > 0) {
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append("INSERT INTO '" + ARTICLES_TABLE_NAME + "'");
-            for (int a = 0; a < articlesList.size(); a++) {
-                Article article = articlesList.get(a);
+
+            for (int a = 0; a < articles.size() ; a++) {
+                Article article = articles.get(a);
                 // SAVE TO DB
                 if (a == 0) {
                     stringBuilder.append("SELECT " +
                             "       NULL                      AS id," +
-                            "       '" + article.getTitle() + "'        AS title," +
-                            "       '" + article.getDescription() + "'  AS description," +
-                            "       '" + article.getText() + "'         AS text," +
-                            "       '" + article.getAuthor() + "'       AS author," +
-                            "       '" + article.getImagesFileName() + "'     AS imagesFileName," +
+                            "       '" + StringEscapeUtils.escapeSql(article.getTitle()) + "'       AS title," +
+                            "       '" + StringEscapeUtils.escapeSql(article.getDescription()) + "'  AS description," +
+                            "       '" + StringEscapeUtils.escapeSql(article.getText()) + "'         AS text," +
+                            "       '" + StringEscapeUtils.escapeSql(article.getAuthor()) + "'       AS author," +
+                            "       '" + article.getImagesFileNameStr() + "'     AS imagesFileName," +
                             "       '" + article.getNewsPaper().ordinal() + "' AS newsPaper," +
                             "        " + article.getDate() + "           AS date," +
                             "        " + System.currentTimeMillis() + "  AS createdAt ");
                 } else {
                     stringBuilder.append("UNION ALL SELECT " +
                             "       NULL ," +
-                            "       '" + article.getTitle() + "'," +
-                            "       '" + article.getDescription() + "'," +
-                            "       '" + article.getText() + "'," +
-                            "       '" + article.getAuthor() + "'," +
-                            "       '" + article.getImagesFileName() + "'," +
+                            "       '" + StringEscapeUtils.escapeSql(article.getTitle()) + "'," +
+                            "       '" + StringEscapeUtils.escapeSql(article.getDescription()) + "'," +
+                            "       '" + StringEscapeUtils.escapeSql(article.getText()) + "'," +
+                            "       '" + StringEscapeUtils.escapeSql(article.getAuthor()) + "'," +
+                            "       '" + article.getImagesFileNameStr() + "'," +
                             "       '" + article.getNewsPaper().ordinal() + "'," +
                             "        " + article.getDate() + "," +
                             "        " + System.currentTimeMillis() + " ");
@@ -89,6 +93,7 @@ public class NewsDb extends SQLiteOpenHelper {
             sqLiteDatabase.execSQL(sql);
             sqLiteDatabase.close();
         }
+
     }
         /*
           "id INTEGER PRIMARY KEY," +
@@ -111,23 +116,30 @@ UNION ALL SELECT 'data1', 'data2'
 
         List<Article> articles = null;
 
+        SQLiteDatabase sqLiteDatabase = this.getReadableDatabase();
+        Cursor cursor = null;
         if (newsPaper == null) {
-            SQLiteDatabase sqLiteDatabase = this.getReadableDatabase();
-            Cursor cursor = sqLiteDatabase.query(ARTICLES_TABLE_NAME, null, "date>" + dateFrom, null, null, null, null);
-            articles = new ArrayList<>();
-            while (cursor.moveToNext()) {
+            cursor = sqLiteDatabase.query(ARTICLES_TABLE_NAME, null, "date>" + dateFrom, null, null, null, null);
+        }
+        else {
+            cursor = sqLiteDatabase.query(ARTICLES_TABLE_NAME, null, "date>"+dateFrom+" AND newsPaper="+newsPaper.ordinal(), null, null, null, null);
+        }
+        articles = new ArrayList<>();
+        while (cursor.moveToNext()) {
                 Article article = new Article();
                 article.setId(cursor.getInt(0));
                 article.setTitle(cursor.getString(1));
                 article.setDescription(cursor.getString(2));
                 article.setText(cursor.getString(3));
                 article.setAuthor(cursor.getString(4));
-                article.setImagesFileName(cursor.getString(5));
+                article.setImagesFileNameStr(cursor.getString(5));
                 article.setNewsPaper(Article.NewsPaper.values()[cursor.getInt(6)]);
                 article.setDate(cursor.getLong(7));
                 articles.add(article);
-            }
         }
+
+
+
 
         return articles;
     }

@@ -1,10 +1,12 @@
 package marc.newscompare.api;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URL;
 
 import marc.newscompare.dao.NewsDb;
 
@@ -18,8 +20,8 @@ public class Article {
     String description;
     String text;
     String author;
-    String imagesFileName;
-    Bitmap[] bitmaps;
+    String imagesFileNameStr;
+    String imagesUrlStr;
     String[] keywords;
     long date;
 
@@ -27,8 +29,8 @@ public class Article {
 
     public enum NewsPaper{
 
-        THE_GUARDIAN( new TheGuardianArticlesLoader() );
-        //THE_TELEGRAPHE,
+        THE_GUARDIAN( new TheGuardianArticlesLoader() ),
+        THE_DAILY_MAIL( new TheDailyMailArticlesLoader() );
 
         ArticlesLoader articlesLoader;
 
@@ -92,14 +94,6 @@ public class Article {
         this.keywords = keywords;
     }
 
-    public Bitmap[] getBitmaps() {
-        return bitmaps;
-    }
-
-    public void setBitmaps(Bitmap[] bitmaps) {
-        this.bitmaps = bitmaps;
-    }
-
     public String getAuthor() {
         return author;
     }
@@ -116,69 +110,57 @@ public class Article {
         this.newsPaper = newsPaper;
     }
 
-    public String getImagesFileName() {
+    public String getImagesFileNameStr() {
+        return imagesFileNameStr;
+    }
+
+    public void setImagesFileNameStr(String imagesFileNameStr) {
+        this.imagesFileNameStr = imagesFileNameStr;
+    }
+
+    public String[] getImagesFilesNames() {
+
+        String[] imagesFileName = this.imagesFileNameStr.split(",");
+
         return imagesFileName;
     }
 
-    public void setImagesFileName(String imagesFileName) {
-        this.imagesFileName = imagesFileName;
-    }
+    public void setImagesFilesNames(String[] imagesFileName) {
 
-    public static String[] saveImages(Article article) {
-
-        String[] imagesNames = null;
-
-        Bitmap[] bitmaps = article.getBitmaps();
-        if( bitmaps!=null ){
-            imagesNames = new String[bitmaps.length];
-        }
-
-        for(int b=0 ; b< bitmaps.length ; b++ ){
-
-            try {
-
-                // CREATE FILE NAME
-                File imageFile = null;
-                while (imageFile == null || imageFile.exists()) {
-
-                    imagesNames[b] = NewsDb.DATA_DIRECTORY + System.currentTimeMillis() + "-" + b + ".jpg";
-                    imageFile = new File(imagesNames[b]);
-                }
-
-                // CREATE FILE
-                if( !imageFile.getParentFile().exists()  ){
-                    imageFile.getParentFile().mkdirs();
-                }
-                Boolean created = imageFile.createNewFile();
-
-
-                if (created == true) {
-                    if (bitmaps[b] != null) {
-
-                        FileOutputStream fileOutputStream = new FileOutputStream(imageFile);
-                        bitmaps[b].compress(Bitmap.CompressFormat.JPEG, 90, fileOutputStream);
-                        fileOutputStream.close();
-                    }
-                }
-
-            }catch (IOException e){
-                e.printStackTrace();
-            }
-        }
-
-        /*
         // PREPARE IMAGESNAMES
-        String[] imagesNames = Article.saveImages(article);
         StringBuilder imagesNamesStringBuilder = new StringBuilder();
-        for(String imageName : imagesNames ){
+        for(String imageName : imagesFileName ){
             imagesNamesStringBuilder.append( imageName+"," );
         }
-        article.setImagesFileName(imagesNamesStringBuilder.toString());
-        */
-
-
-        return  imagesNames;
+        this.imagesFileNameStr = imagesNamesStringBuilder.toString();
     }
+
+
+    public String getImagesUrlStr() {
+        return imagesUrlStr;
+    }
+
+    public void setImagesUrlStr(String imagesUrlStr) {
+        this.imagesUrlStr = imagesUrlStr;
+    }
+
+    public String[] getImagesUrls(){
+
+        String[] imagesUrls = imagesUrlStr.split(",");
+        return imagesUrls;
+    }
+
+
+    public void setImagesUrls( String[] imagesUrls ){
+
+        StringBuilder stringBuilder = new StringBuilder();
+        for(String imageUrl : imagesUrls ){
+            stringBuilder.append( imageUrl + ",");
+        }
+        this.imagesUrlStr = stringBuilder.toString();
+    }
+
+
 
 
 }
