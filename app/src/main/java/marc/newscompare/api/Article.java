@@ -7,6 +7,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import marc.newscompare.dao.NewsDb;
 
@@ -22,7 +24,7 @@ public class Article {
     String author;
     String imagesFileNameStr;
     String imagesUrlStr;
-    String[] keywords;
+    List<String> keywords = new ArrayList<>();
     long date;
 
     NewsPaper newsPaper;
@@ -86,11 +88,11 @@ public class Article {
         this.date = date;
     }
 
-    public String[] getKeywords() {
+    public List<String> getKeywords() {
         return keywords;
     }
 
-    public void setKeywords(String[] keywords) {
+    public void setKeywords(List<String> keywords) {
         this.keywords = keywords;
     }
 

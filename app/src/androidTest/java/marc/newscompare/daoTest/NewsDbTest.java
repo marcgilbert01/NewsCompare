@@ -23,6 +23,8 @@ import marc.newscompare.dao.NewsDb;
  */
 public class NewsDbTest extends InstrumentationTestCase {
 
+
+
     public void testSaveArticles() {
         // DELETE DATABASE
         File dbFile = new File(NewsDb.DATA_DIRECTORY + "/news.db");
@@ -50,7 +52,7 @@ public class NewsDbTest extends InstrumentationTestCase {
         NewsDb newsDb = new NewsDb(getInstrumentation().getContext());
         newsDb.saveArticles(articles);
         // GET ARTICLES FROM DB
-        List<Article> articlesFromDb = newsDb.getArticles(0L, null);
+        List<Article> articlesFromDb = newsDb.getArticles(0L, null , false);
         assertNotNull(articlesFromDb);
         assertTrue(articlesFromDb.size() == nbArticlesToAdd);
         for (int a = 0; a < articlesFromDb.size(); a++) {
@@ -63,6 +65,9 @@ public class NewsDbTest extends InstrumentationTestCase {
             assertTrue(articlesFromDb.get(a).getDate() == now);
         }
     }
+
+
+
 
     public void testSaveArticleFromTheGuardian() {
 
@@ -106,7 +111,7 @@ public class NewsDbTest extends InstrumentationTestCase {
 
         newsDb.saveArticles(articles);
 
-        List<Article> theGuardianArticles  = newsDb.getArticles( 0L , Article.NewsPaper.THE_GUARDIAN );
+        List<Article> theGuardianArticles  = newsDb.getArticles( 0L , Article.NewsPaper.THE_GUARDIAN , false);
 
         assertNotNull(theGuardianArticles);
 
@@ -131,6 +136,129 @@ public class NewsDbTest extends InstrumentationTestCase {
         }
 
     }
+
+
+
+
+    public void testSaveKeywords(){
+
+        // DELETE DATABASE
+        File dbFile = new File(NewsDb.DATA_DIRECTORY + "/news.db");
+        if (dbFile.exists()) {
+            dbFile.delete();
+        }
+
+        // PREPARE DUMMY ARTICLES
+        List<Article> articles = new ArrayList<Article>();
+        int nbArticlesToAdd = 5;
+        Long now = System.currentTimeMillis();
+        for (int a = 0; a < nbArticlesToAdd; a++) {
+            Article article = new Article();
+            article.setTitle(" tilte " + a);
+            article.setDescription("description'quote" + a);
+            article.setText("text " + a);
+            article.setAuthor("author " + a);
+            article.setImagesFileNameStr("file" + a + ".jpg,file2_" + a + ".jpg");
+            article.setNewsPaper(Article.NewsPaper.THE_GUARDIAN);
+            article.setDate(now);
+            //article.setBitmaps( ArticleTest.createDummyBitmaps() );
+            articles.add(article);
+        }
+
+        // SAVE KEYWRODS TO KEYWORDS TABLE
+        NewsDb newsDb = new NewsDb(getInstrumentation().getContext());
+        newsDb.saveArticles(articles);
+
+        List<Article> articlesFromDb = newsDb.getArticles(0L, null , false);
+
+        for(int a=0 ; a<articlesFromDb.size() ; a++ ) {
+            List<String> keywords = new ArrayList<>();
+            keywords.add("first keyword " + a);
+            keywords.add("second keyword " + a);
+            keywords.add("third keyword " + a);
+            articlesFromDb.get(a).setKeywords(keywords);
+        }
+
+        newsDb.saveKeywords(articlesFromDb);
+
+        List<Article> articlesFromDbIncludeKeywords = newsDb.getArticles(0L,null,true);
+
+        assertNotNull(articlesFromDbIncludeKeywords);
+
+        assertEquals(articlesFromDbIncludeKeywords.size(), nbArticlesToAdd);
+
+        for(int a=0 ; a<articlesFromDbIncludeKeywords.size() ; a++   ){
+
+            Article articleFromDbIncludeKeywords = articlesFromDbIncludeKeywords.get(a);
+            Article articleFromDb = articlesFromDb.get(a);
+
+            assertEquals( articleFromDbIncludeKeywords.getTitle() ,
+                    articleFromDb.getTitle() );
+
+            assertEquals( articleFromDbIncludeKeywords.getDescription() ,
+                    articleFromDb.getDescription() );
+
+            assertEquals( articleFromDbIncludeKeywords.getText() ,
+                    articleFromDb.getText() );
+
+            assertEquals( articleFromDbIncludeKeywords.getImagesFileNameStr() ,
+                    articleFromDb.getImagesFileNameStr() );
+
+            assertEquals( articleFromDbIncludeKeywords.getDate() ,
+                    articleFromDb.getDate() );
+
+            assertEquals( articleFromDbIncludeKeywords.getKeywords().get(0) ,
+                          articleFromDb.getKeywords().get(0) );
+            assertEquals( articleFromDbIncludeKeywords.getKeywords().get(1) ,
+                          articleFromDb.getKeywords().get(1) );
+            assertEquals( articleFromDbIncludeKeywords.getKeywords().get(2) ,
+                          articleFromDb.getKeywords().get(2) );
+
+            //assertEquals( articleFromDbIncludeKeywords , articlesFromDb );
+
+
+
+
+        }
+
+
+    }
+
+
+
+    public void testGetArticlesWithNoKeywords(){
+
+        // DELETE DATABASE
+        File dbFile = new File(NewsDb.DATA_DIRECTORY + "/news.db");
+        if (dbFile.exists()) {
+            dbFile.delete();
+        }
+
+        // PREPARE DUMMY ARTICLES
+        List<Article> articles = new ArrayList<Article>();
+        int nbArticlesToAdd = 5;
+        Long now = System.currentTimeMillis();
+        for (int a = 0; a < nbArticlesToAdd; a++) {
+            Article article = new Article();
+            article.setTitle(" tilte " + a);
+            article.setDescription("description'quote" + a);
+            article.setText("text " + a);
+            article.setAuthor("author " + a);
+            article.setImagesFileNameStr("file" + a + ".jpg,file2_" + a + ".jpg");
+            article.setNewsPaper(Article.NewsPaper.THE_GUARDIAN);
+            article.setDate(now);
+            //article.setBitmaps( ArticleTest.createDummyBitmaps() );
+            //article.setKeywords(new String[]{"first keyword", "second keyword", "third keyword"});
+            articles.add(article);
+        }
+
+        // SAVE DUMMY ARTICLES TO DB
+        NewsDb newsDb = new NewsDb( getInstrumentation().getContext() );
+        newsDb.saveArticles( articles );
+
+    }
+
+
 
 
 }

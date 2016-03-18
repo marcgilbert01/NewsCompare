@@ -32,7 +32,7 @@ public class NewsRecorderThread extends Thread{
             for (Article.NewsPaper newsPaper : Article.NewsPaper.values()) {
 
                 // GET EXISTING ARTICLES FROM DB
-                List<Article> existingArticles = newsDb.getArticles( 0L , newsPaper );
+                List<Article> existingArticles = newsDb.getArticles( 0L , newsPaper , false);
                 // GET NEW ARTICLES FROM RSS FEED
                 ArticlesLoader articlesLoader = newsPaper.getArticlesLoader();
                 List<Article> newArticles = articlesLoader.getNewArticles( existingArticles );
