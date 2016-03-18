@@ -166,6 +166,8 @@ System.out.println( cursor.getInt(0) +"," +
             }
             // IS AN ARTICLE
             else {
+
+/*
                 Article article = new Article();
                 article.setId(cursor.getInt(0));
                 article.setTitle(cursor.getString(1));
@@ -175,6 +177,8 @@ System.out.println( cursor.getInt(0) +"," +
                 article.setImagesFileNameStr(cursor.getString(5));
                 article.setNewsPaper(Article.NewsPaper.values()[cursor.getInt(6)]);
                 article.setDate(cursor.getLong(7));
+*/
+                Article article = readArticle(cursor);
                 if (includeKeywords){
                     article.getKeywords().add(cursor.getString(10));
                 }
@@ -200,51 +204,6 @@ System.out.println( cursor.getInt(0) +"," +
         SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
         sqLiteDatabase.execSQL( "DELETE * FROM "+ARTICLES_TABLE_NAME+" WHERE date<"+beforeDate );
         sqLiteDatabase.close();
-    }
-
-
-
-    public List<Article> getArticlesWithNoKeywords(){
-
-        List<Article> articles = null;
-
-        SQLiteDatabase sqLiteDatabase = getReadableDatabase();
-
-        Cursor cursor = sqLiteDatabase.rawQuery( "SELECT * FROM "+ARTICLES_TABLE_NAME+" " +
-                                "LEFT OUTER JOIN "+KEYWORDS_TABLE_NAME+" " +
-                                "ON "+ARTICLES_TABLE_NAME+".id = "+KEYWORDS_TABLE_NAME+".articleId " +
-                                "WHERE "+KEYWORDS_TABLE_NAME+".articleId = NULL"
-                               ,null);
-
-        if( cursor!=null && cursor.getCount()>0 ) {
-
-            articles = new ArrayList<>();
-            while (cursor.moveToNext()) {
-
-                Article article = new Article();
-                //article.setId( cursor. );
-
-            }
-
-
-
-
-        }
-
-
-
-
-
-
-/*
-        SELECT t1.ID
-        FROM Table1 t1
-        LEFT JOIN Table2 t2 ON t1.ID = t2.ID
-        WHERE t2.ID IS NULL
-*/
-
-
-        return articles;
     }
 
 
@@ -298,8 +257,77 @@ System.out.println( cursor.getInt(0) +"," +
                 sqLiteDatabase.close();
             }
         }
-
     }
+
+
+
+
+/*
+        SELECT t1.ID
+        FROM Table1 t1
+        LEFT JOIN Table2 t2 ON t1.ID = t2.ID
+        WHERE t2.ID IS NULL
+*/
+//  GET ARTICLES WHICH HAVE NOT GOT ANY KEYWORDS
+    public List<Article> getArticlesWithNoKeywords(){
+
+        List<Article> articles = null;
+
+        SQLiteDatabase sqLiteDatabase = getReadableDatabase();
+
+        Cursor cursor = sqLiteDatabase.rawQuery( "SELECT * FROM "+ARTICLES_TABLE_NAME+" " +
+                "LEFT OUTER JOIN "+KEYWORDS_TABLE_NAME+" " +
+                "ON "+ARTICLES_TABLE_NAME+".id = "+KEYWORDS_TABLE_NAME+".articleId " +
+                "WHERE "+KEYWORDS_TABLE_NAME+".articleId IS NULL"
+                ,null);
+
+        if( cursor!=null && cursor.getCount()>0 ) {
+
+            articles = new ArrayList<>();
+            while (cursor.moveToNext()) {
+
+               Article article = readArticle(cursor);
+               articles.add(article);
+            }
+        }
+
+        return articles;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    private Article readArticle(Cursor cursor) {
+        Article article = new Article();
+        article.setId(cursor.getInt(0));
+        article.setTitle(cursor.getString(1));
+        article.setDescription(cursor.getString(2));
+        article.setText(cursor.getString(3));
+        article.setAuthor(cursor.getString(4));
+        article.setImagesFileNameStr(cursor.getString(5));
+        article.setNewsPaper(Article.NewsPaper.values()[cursor.getInt(6)]);
+        article.setDate(cursor.getLong(7));
+
+        return article;
+    }
+
 
 
 

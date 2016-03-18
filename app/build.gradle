@@ -26,5 +26,6 @@ dependencies {
     compile 'com.android.support:design:23.2.0'
     compile project(':marcviews')
     compile 'commons-lang:commons-lang:2.6'
+    compile 'com.google.code.gson:gson:2.2.4'
 
 }

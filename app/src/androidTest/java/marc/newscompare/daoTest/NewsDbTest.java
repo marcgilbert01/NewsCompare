@@ -165,12 +165,14 @@ public class NewsDbTest extends InstrumentationTestCase {
             articles.add(article);
         }
 
-        // SAVE KEYWRODS TO KEYWORDS TABLE
+        // SAVE ARTICLES WITHOUT KEYWORDS
         NewsDb newsDb = new NewsDb(getInstrumentation().getContext());
         newsDb.saveArticles(articles);
 
+        // RETRIEVE ARTICLES WITHOUT KEYWORDS
         List<Article> articlesFromDb = newsDb.getArticles(0L, null , false);
 
+        // ADD KEYWORDS TO ARTICLES
         for(int a=0 ; a<articlesFromDb.size() ; a++ ) {
             List<String> keywords = new ArrayList<>();
             keywords.add("first keyword " + a);
@@ -179,14 +181,15 @@ public class NewsDbTest extends InstrumentationTestCase {
             articlesFromDb.get(a).setKeywords(keywords);
         }
 
+        // SAVE KEYWORDS WITH ARTICLES
         newsDb.saveKeywords(articlesFromDb);
 
+        // GET ARTICLES FRIOM DB WITH KEYWORDS
         List<Article> articlesFromDbIncludeKeywords = newsDb.getArticles(0L,null,true);
 
+        // CHECK
         assertNotNull(articlesFromDbIncludeKeywords);
-
         assertEquals(articlesFromDbIncludeKeywords.size(), nbArticlesToAdd);
-
         for(int a=0 ; a<articlesFromDbIncludeKeywords.size() ; a++   ){
 
             Article articleFromDbIncludeKeywords = articlesFromDbIncludeKeywords.get(a);
@@ -214,13 +217,7 @@ public class NewsDbTest extends InstrumentationTestCase {
             assertEquals( articleFromDbIncludeKeywords.getKeywords().get(2) ,
                           articleFromDb.getKeywords().get(2) );
 
-            //assertEquals( articleFromDbIncludeKeywords , articlesFromDb );
-
-
-
-
         }
-
 
     }
 
@@ -233,10 +230,9 @@ public class NewsDbTest extends InstrumentationTestCase {
         if (dbFile.exists()) {
             dbFile.delete();
         }
-
         // PREPARE DUMMY ARTICLES
         List<Article> articles = new ArrayList<Article>();
-        int nbArticlesToAdd = 5;
+        int nbArticlesToAdd = 6;
         Long now = System.currentTimeMillis();
         for (int a = 0; a < nbArticlesToAdd; a++) {
             Article article = new Article();
@@ -248,13 +244,54 @@ public class NewsDbTest extends InstrumentationTestCase {
             article.setNewsPaper(Article.NewsPaper.THE_GUARDIAN);
             article.setDate(now);
             //article.setBitmaps( ArticleTest.createDummyBitmaps() );
-            //article.setKeywords(new String[]{"first keyword", "second keyword", "third keyword"});
             articles.add(article);
         }
 
-        // SAVE DUMMY ARTICLES TO DB
-        NewsDb newsDb = new NewsDb( getInstrumentation().getContext() );
-        newsDb.saveArticles( articles );
+        // SAVE ARTICLES WITHOUT KEYWORDS
+        NewsDb newsDb = new NewsDb(getInstrumentation().getContext());
+        newsDb.saveArticles(articles);
+
+        // RETRIEVE ARTICLES WITHOUT KEYWORDS
+        List<Article> articlesFromDb = newsDb.getArticles(0L, null , false);
+
+        // ADD KEYWORDS TO SOME OF THE ARTICLES
+        for(int a=0 ; a<articlesFromDb.size() ; a++ ) {
+
+            if( a%2 == 0) {
+                List<String> keywords = new ArrayList<>();
+                keywords.add("first keyword " + a);
+                keywords.add("second keyword " + a);
+                keywords.add("third keyword " + a);
+                articlesFromDb.get(a).setKeywords(keywords);
+            }
+        }
+
+        // SAVE KEYWORDS WITH ARTICLES
+        newsDb.saveKeywords(articlesFromDb);
+
+        // GET ARTICLES WHICH DON'T HAVE KEYWORDS
+        List<Article> articlesWithNoKeywords = newsDb.getArticlesWithNoKeywords();
+
+        assertNotNull(articlesWithNoKeywords);
+
+        assertEquals( articlesWithNoKeywords.size() , articlesFromDb.size()/2 );
+
+        int ak = 0;
+        for(int a=0 ; a<articlesFromDb.size() ; a++ ){
+
+            if( !(a%2 ==0) ){
+
+                Article articleFromDb = articlesFromDb.get(a);
+                Article articleWithNoKeyWords = articlesWithNoKeywords.get(ak);
+
+                assertEquals( articleFromDb.getTitle() , articleWithNoKeyWords.getTitle() );
+
+                ak++;
+
+            }
+
+        }
+
 
     }
 

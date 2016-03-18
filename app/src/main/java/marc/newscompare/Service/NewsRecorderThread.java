@@ -2,11 +2,14 @@ package marc.newscompare.Service;
 
 import android.content.Context;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import marc.newscompare.api.Article;
 import marc.newscompare.api.ArticlesLoader;
 import marc.newscompare.dao.NewsDb;
+import yahooapi.contentAnalysis.YahooContentAnalysisApi;
 
 /**
  * Created by gilbertm on 15/03/2016.
@@ -39,6 +42,28 @@ public class NewsRecorderThread extends Thread{
                 // SAVE NEW ARTICLES TO DB
                 newsDb.saveArticles( newArticles );
             }
+
+
+            // GET KEYWORDS FROM ARTICLES
+            List<Article> articlesWithNoKeywords = newsDb.getArticlesWithNoKeywords();
+            YahooContentAnalysisApi yahooContentAnalysis = new YahooContentAnalysisApi();
+            for(Article article : articlesWithNoKeywords  ){
+
+                // GET KEYWORDS FROM YAHOO API
+                String[] keywords = yahooContentAnalysis.getKeywords( article.getDescription() );
+                // IF NO KEYWORDS CREATE EMPTY ONE
+                if( keywords==null ) {
+                    keywords = new String[]{""};
+                }
+                List<String> keywordList = new ArrayList<String>(Arrays.asList(keywords));
+                article.setKeywords(keywordList);
+                //
+
+            }
+
+            // SAVE KEYWORDS ( NOT WORKING WHEN TOO MANY SELECT )
+            ne  wsDb.saveKeywords( new ArrayList<Article>().add(article) );
+
 
             // SLEEP FOR 1 HOUR
             try {
