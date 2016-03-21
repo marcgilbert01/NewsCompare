@@ -136,29 +136,9 @@ public class NewsDb extends SQLiteOpenHelper {
         }
         articles = new ArrayList<>();
 
-
-
-
-
-
         int previousArticleId = -1;
         while( cursor.moveToNext() ) {
-/*
-System.out.println( cursor.getInt(0) +"," +
-                    cursor.getString(1) +", " +
-                    cursor.getString(2) +"," +
-                    cursor.getString(3) +", " +
-                    cursor.getString(4) +", " +
-                    cursor.getString(5) +", " +
-                    cursor.getInt(6) +", " +
-                    cursor.getInt(7) +", " +
-                    cursor.getInt(8) +", " +
 
-                    cursor.getInt(9) +", " +
-                    cursor.getString(10) +", " +
-                    cursor.getInt(11) +", "
-);
-*/
             // IS A KEYWORD
             if( cursor.getInt(0)==previousArticleId ){
                 Article article = articles.get(articles.size()-1);
@@ -167,17 +147,6 @@ System.out.println( cursor.getInt(0) +"," +
             // IS AN ARTICLE
             else {
 
-/*
-                Article article = new Article();
-                article.setId(cursor.getInt(0));
-                article.setTitle(cursor.getString(1));
-                article.setDescription(cursor.getString(2));
-                article.setText(cursor.getString(3));
-                article.setAuthor(cursor.getString(4));
-                article.setImagesFileNameStr(cursor.getString(5));
-                article.setNewsPaper(Article.NewsPaper.values()[cursor.getInt(6)]);
-                article.setDate(cursor.getLong(7));
-*/
                 Article article = readArticle(cursor);
                 if (includeKeywords){
                     article.getKeywords().add(cursor.getString(10));
@@ -297,11 +266,89 @@ System.out.println( cursor.getInt(0) +"," +
 
 
 
+    public void deleteArticles(Long olderThan){
+
+        SQLiteDatabase sqLiteDatabase = getWritableDatabase();
+
+        sqLiteDatabase.execSQL( "DELETE FROM "+KEYWORDS_TABLE_NAME+" WHERE articleId IN " +
+                "( SELECT id FROM "+ARTICLES_TABLE_NAME+" WHERE date<"+olderThan+" )" );
+
+        sqLiteDatabase.execSQL( "DELETE FROM "+ARTICLES_TABLE_NAME+" WHERE date<"+olderThan );
+
+        sqLiteDatabase.close();
+
+    }
 
 
 
+    // METHOD WILL RETURNED ARTICLES WHO HAVE 2 OR MORE OF THE KEYWORDS PROVIDED
+    //
+    public List<Article> getMatchingArticles( List<String> keywords , int nbMatching ){
+
+        List<Article> matchingArticles = new ArrayList<>();
+/*
+        StringBuilder stringBuilder = new StringBuilder();
+        String[][] keywordsCombinations = new String[keywords.length][nbMatching];
+        for(int row=0 ; row<keywordsCombinations.length ; row++  ){
+
+            //keywordsCombinations[row][0] = keywords[row];
+            for(int col=row ; col<keywordsCombinations[0].length ; col++  ){
+
+               //keywordsCombinations[row][col] = keywords[col];
+               stringBuilder.append( KEYWORDS_TABLE_NAME+".keyword = "+keywords[col]+" AND " );
+            }
+            if( row<keywordsCombinations.length-1 ) {
+                stringBuilder.append(" OR \n");
+            }
+        }
+        String keywordsConditions = stringBuilder.toString();
+*/
+
+        StringBuilder stringBuilderKeywords = new StringBuilder();
+        stringBuilderKeywords.append( " (" );
+        for(int k=0 ; k<keywords.size()-1 ; k++ ){
+            stringBuilderKeywords.append("'"+keywords.get(k)+"' ," );
+        }
+        stringBuilderKeywords.append("'"+keywords.get(keywords.size()-1)+"')" );
+        //    ('Sarah', 'Jane', 'Heather');
+
+        SQLiteDatabase sqLiteDatabase = getReadableDatabase();
+        Cursor cursor = sqLiteDatabase.rawQuery("SELECT * FROM " + ARTICLES_TABLE_NAME + " " +
+                "LEFT OUTER JOIN " + KEYWORDS_TABLE_NAME + " " +
+                "ON " + ARTICLES_TABLE_NAME + ".id = " + KEYWORDS_TABLE_NAME + ".articleId " +
+                "WHERE keyword IN " + stringBuilderKeywords.toString() + " " +
+                "ORDER BY " + ARTICLES_TABLE_NAME + ".id", null);
 
 
+        List<Article> articles = new ArrayList<>();
+        int previousArticleId = -1;
+        while( cursor.moveToNext() ) {
+
+            // IS A KEYWORD
+            if( cursor.getInt(0)==previousArticleId ){
+
+                Article article = articles.get(articles.size()-1);
+                article.getKeywords().add( cursor.getString( 10 ) );
+            }
+            // IS AN ARTICLE
+            else {
+
+                Article article = readArticle(cursor);
+                article.getKeywords().add(cursor.getString(10));
+                articles.add(article);
+                previousArticleId = article.getId();
+            }
+
+            // DETECT IF MATCHING (WE USE EQUAL SO IT IS NOT ADDED TWICE)
+            Article article = articles.get(articles.size()-1);
+            if( article.getKeywords().size()==nbMatching ){
+                matchingArticles.add(article);
+            }
+
+        }
+
+        return matchingArticles;
+    }
 
 
 

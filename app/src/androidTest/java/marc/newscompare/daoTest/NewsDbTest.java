@@ -283,17 +283,222 @@ public class NewsDbTest extends InstrumentationTestCase {
 
                 Article articleFromDb = articlesFromDb.get(a);
                 Article articleWithNoKeyWords = articlesWithNoKeywords.get(ak);
-
                 assertEquals( articleFromDb.getTitle() , articleWithNoKeyWords.getTitle() );
-
                 ak++;
-
             }
-
         }
 
 
     }
+
+
+
+    public void testDeleteArticles(){
+
+        // DELETE DATABASE
+        File dbFile = new File(NewsDb.DATA_DIRECTORY + "/news.db");
+        if (dbFile.exists()) {
+            dbFile.delete();
+        }
+
+        // PREPARE DUMMY ARTICLES SET 1
+        List<Article> articlesSet1 = new ArrayList<Article>();
+        int nbArticlesToAdd = 3;
+        Long now = System.currentTimeMillis();
+        for (int a = 0; a < nbArticlesToAdd; a++) {
+            Article article = new Article();
+            article.setTitle("SET1 tilte " + a);
+            article.setDescription("description'quote" + a);
+            article.setText("text " + a);
+            article.setAuthor("author " + a);
+            article.setImagesFileNameStr("file" + a + ".jpg,file2_" + a + ".jpg");
+            article.setNewsPaper(Article.NewsPaper.THE_GUARDIAN);
+            article.setDate(now);
+            //article.setBitmaps( ArticleTest.createDummyBitmaps() );
+            articlesSet1.add(article);
+        }
+        // SAVE ARTICLES WITHOUT KEYWORDS
+        NewsDb newsDb = new NewsDb(getInstrumentation().getContext());
+        newsDb.saveArticles(articlesSet1);
+        // RETRIEVE ARTICLES EXCLUDING THE KEYWORDS
+        List<Article> articlesFromDbSet1 = newsDb.getArticles(0L, null , false);
+        // ADD KEYWORDS TO THE ARTICLES
+        for(int a=0 ; a<articlesFromDbSet1.size() ; a++ ) {
+
+           List<String> keywords = new ArrayList<>();
+            keywords.add("SET1 first keyword " + a);
+            keywords.add("SET1 second keyword " + a);
+            keywords.add("SET1 third keyword " + a);
+            articlesFromDbSet1.get(a).setKeywords(keywords);
+
+        }
+        // SAVE KEYWORDS WITH ARTICLES
+        newsDb.saveKeywords(articlesFromDbSet1);
+
+
+        // SLEEP FOR A SECOND
+        Long olderThan = null;
+        try {
+            Thread.sleep(500);
+            olderThan = System.currentTimeMillis();
+            Thread.sleep(500);
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // PREPARE DUMMY ARTICLES SET 2
+        List<Article> articlesSet2 = new ArrayList<Article>();
+        now = System.currentTimeMillis();
+        for (int a = 0; a < nbArticlesToAdd; a++) {
+            Article article = new Article();
+            article.setTitle("SET2 tilte " + a);
+            article.setDescription("description'quote" + a);
+            article.setText("text " + a);
+            article.setAuthor("author " + a);
+            article.setImagesFileNameStr("file" + a + ".jpg,file2_" + a + ".jpg");
+            article.setNewsPaper(Article.NewsPaper.THE_GUARDIAN);
+            article.setDate(now);
+            //article.setBitmaps( ArticleTest.createDummyBitmaps() );
+            articlesSet2.add(article);
+        }
+        // SAVE ARTICLES WITHOUT KEYWORDS
+        newsDb.saveArticles(articlesSet2);
+        // RETRIEVE ARTICLES WITHOUT KEYWORDS
+        List<Article> articlesFromDbSet2 = newsDb.getArticles(olderThan, null , false);
+        // ADD KEYWORDS TO THE ARTICLES
+        for(int a=0 ; a<articlesFromDbSet2.size() ; a++ ) {
+
+            List<String> keywords = new ArrayList<>();
+            keywords.add("SET2 first keyword " + a);
+            keywords.add("SET2 second keyword " + a);
+            keywords.add("SET2 third keyword " + a);
+            articlesFromDbSet2.get(a).setKeywords(keywords);
+
+        }
+        // SAVE KEYWORDS WITH ARTICLES
+        newsDb.saveKeywords(articlesFromDbSet2);
+
+        // DELETE ARTICLES FROM SET1
+        newsDb.deleteArticles(olderThan);
+
+        // GET ARTICLES
+        List<Article> remainingArticles = newsDb.getArticles( 0L ,null, true);
+
+        assertNotNull(remainingArticles);
+
+        assertEquals( remainingArticles.size() , 3  );
+
+        for(int a=0 ; a<remainingArticles.size() ; a++ ){
+
+            assertEquals( articlesFromDbSet2.get(a).getTitle() , remainingArticles.get(a).getTitle() );
+
+            assertEquals( articlesFromDbSet2.get(a).getKeywords() , remainingArticles.get(a).getKeywords() );
+
+        }
+
+
+
+    }
+
+
+
+
+    public void testGetMatchingArticles(){
+
+        // DELETE DATABASE
+        File dbFile = new File(NewsDb.DATA_DIRECTORY + "/news.db");
+        if (dbFile.exists()) {
+            dbFile.delete();
+        }
+
+        // PREPARE DUMMY ARTICLES
+        List<Article> articles = new ArrayList<Article>();
+        int nbArticlesToAdd = 5;
+        Long now = System.currentTimeMillis();
+        for (int a = 0; a < nbArticlesToAdd; a++) {
+            Article article = new Article();
+            article.setTitle("tilte " + a);
+            article.setDescription("description'quote" + a);
+            article.setText("text " + a);
+            article.setAuthor("author " + a);
+            article.setImagesFileNameStr("file" + a + ".jpg,file2_" + a + ".jpg");
+            article.setNewsPaper(Article.NewsPaper.THE_GUARDIAN);
+            article.setDate(now);
+            //article.setBitmaps( ArticleTest.createDummyBitmaps() );
+            articles.add(article);
+        }
+        // SAVE ARTICLES WITHOUT KEYWORDS
+        NewsDb newsDb = new NewsDb(getInstrumentation().getContext());
+        newsDb.saveArticles(articles);
+        // RETRIEVE ARTICLES EXCLUDING THE KEYWORDS
+        List<Article> articlesFromDb = newsDb.getArticles(0L, null , false);
+        // ADD KEYWORDS TO THE ARTICLES
+        for(int a=0 ; a<articlesFromDb.size() ; a++ ) {
+
+            List<String> keywords = new ArrayList<>();
+
+            if( a==0 ) {
+                keywords.add("dog");
+                keywords.add("cat");
+                keywords.add("horse");
+                keywords.add("chicken");
+                keywords.add("cow");
+                keywords.add("pig");
+            }
+            if( a==1 ) {
+                keywords.add("elephant");
+                keywords.add("dog");
+                keywords.add("lion");
+                keywords.add("cat");
+                keywords.add("monkey");
+            }
+            if( a==2 ) {
+                keywords.add("giraffe");
+                keywords.add("dog");
+                keywords.add("lion");
+                keywords.add("horse");
+            }
+            if( a==3 ) {
+                keywords.add("donkey");
+                keywords.add("elephant");
+                keywords.add("cat");
+                keywords.add("eagle");
+                keywords.add("giraffe");
+                keywords.add("chicken" + a);
+            }
+            if( a==4 ) {
+                keywords.add("chicken");
+                keywords.add("giraffe");
+                keywords.add("cat");
+            }
+            articlesFromDb.get(a).setKeywords(keywords);
+        }
+        // SAVE KEYWORDS WITH ARTICLES
+        newsDb.saveKeywords(articlesFromDb);
+
+        // GET ARTICLES FROM DB
+        articlesFromDb = newsDb.getArticles(0L,null,true);
+
+        // CHECK FIRST ARTICLE FOR 2 MATCHING KEYWORDS
+        List<Article> matchingArticles = newsDb.getMatchingArticles( articlesFromDb.get(0).getKeywords() , 2 );
+
+        assertNotNull(matchingArticles);
+
+        assertEquals( matchingArticles.size() , 4 );
+
+        // MATCHING ARTICLES SHOULD BE 0 ,1 , 2, 4
+
+
+
+
+
+
+
+
+    }
+
+
 
 
 

@@ -57,13 +57,15 @@ public class NewsRecorderThread extends Thread{
                 }
                 List<String> keywordList = new ArrayList<String>(Arrays.asList(keywords));
                 article.setKeywords(keywordList);
-                //
-
+                // SAVE KEYWORDS ( NOT WORKING WHEN TOO MANY SELECT )
+                List<Article> articlesWithKeywords = new ArrayList<>();
+                articlesWithKeywords.add(article);
+                newsDb.saveKeywords(articlesWithKeywords);
+                // DELETE OLDER ARTICLES (OLDER THAN ONE WEEK)
+                Long now = System.currentTimeMillis();
+                Long aWeekAgo = now - ( 7 * 24 * 3600 * 1000 );
+                newsDb.deleteArticles( aWeekAgo );
             }
-
-            // SAVE KEYWORDS ( NOT WORKING WHEN TOO MANY SELECT )
-            ne  wsDb.saveKeywords( new ArrayList<Article>().add(article) );
-
 
             // SLEEP FOR 1 HOUR
             try {
