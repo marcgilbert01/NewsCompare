@@ -126,12 +126,9 @@ public class NewsDbTest extends InstrumentationTestCase {
 
             assertTrue( orgArticle.getDescription().equals(dbArticle.getDescription()) );
 
-            //assertTrue( orgArticle.getText().equals(dbArticle.getText()));
-
             assertTrue( orgArticle.getAuthor().equals(dbArticle.getAuthor()));
 
             assertTrue( orgArticle.getDate() == dbArticle.getDate() );
-
 
         }
 
@@ -195,27 +192,21 @@ public class NewsDbTest extends InstrumentationTestCase {
             Article articleFromDbIncludeKeywords = articlesFromDbIncludeKeywords.get(a);
             Article articleFromDb = articlesFromDb.get(a);
 
-            assertEquals( articleFromDbIncludeKeywords.getTitle() ,
-                    articleFromDb.getTitle() );
+            assertEquals( articleFromDb.getTitle() , articleFromDbIncludeKeywords.getTitle() );
 
-            assertEquals( articleFromDbIncludeKeywords.getDescription() ,
-                    articleFromDb.getDescription() );
+            assertEquals( articleFromDb.getDescription() , articleFromDbIncludeKeywords.getDescription() );
 
-            assertEquals( articleFromDbIncludeKeywords.getText() ,
-                    articleFromDb.getText() );
+            assertEquals( articleFromDb.getText() , articleFromDbIncludeKeywords.getText() );
 
-            assertEquals( articleFromDbIncludeKeywords.getImagesFileNameStr() ,
-                    articleFromDb.getImagesFileNameStr() );
+            assertEquals( articleFromDb.getImagesFileNameStr() , articleFromDbIncludeKeywords.getImagesFileNameStr() );
 
-            assertEquals( articleFromDbIncludeKeywords.getDate() ,
-                    articleFromDb.getDate() );
+            assertEquals( articleFromDb.getDate() , articleFromDbIncludeKeywords.getDate() );
 
-            assertEquals( articleFromDbIncludeKeywords.getKeywords().get(0) ,
-                          articleFromDb.getKeywords().get(0) );
-            assertEquals( articleFromDbIncludeKeywords.getKeywords().get(1) ,
-                          articleFromDb.getKeywords().get(1) );
-            assertEquals( articleFromDbIncludeKeywords.getKeywords().get(2) ,
-                          articleFromDb.getKeywords().get(2) );
+            assertEquals( articleFromDb.getKeywords().get(0) , articleFromDbIncludeKeywords.getKeywords().get(0) );
+
+            assertEquals( articleFromDb.getKeywords().get(1) , articleFromDbIncludeKeywords.getKeywords().get(1) );
+
+            assertEquals( articleFromDb.getKeywords().get(2) , articleFromDbIncludeKeywords.getKeywords().get(2) );
 
         }
 
@@ -274,7 +265,7 @@ public class NewsDbTest extends InstrumentationTestCase {
 
         assertNotNull(articlesWithNoKeywords);
 
-        assertEquals( articlesWithNoKeywords.size() , articlesFromDb.size()/2 );
+        assertEquals( articlesFromDb.size()/2 , articlesWithNoKeywords.size() );
 
         int ak = 0;
         for(int a=0 ; a<articlesFromDb.size() ; a++ ){
@@ -335,7 +326,6 @@ public class NewsDbTest extends InstrumentationTestCase {
         // SAVE KEYWORDS WITH ARTICLES
         newsDb.saveKeywords(articlesFromDbSet1);
 
-
         // SLEEP FOR A SECOND
         Long olderThan = null;
         try {
@@ -387,18 +377,15 @@ public class NewsDbTest extends InstrumentationTestCase {
 
         assertNotNull(remainingArticles);
 
-        assertEquals( remainingArticles.size() , 3  );
+        assertEquals( 3 , remainingArticles.size() );
 
         for(int a=0 ; a<remainingArticles.size() ; a++ ){
 
-            assertEquals( articlesFromDbSet2.get(a).getTitle() , remainingArticles.get(a).getTitle() );
+            assertEquals( remainingArticles.get(a).getTitle() , articlesFromDbSet2.get(a).getTitle() );
 
-            assertEquals( articlesFromDbSet2.get(a).getKeywords() , remainingArticles.get(a).getKeywords() );
+            assertEquals( remainingArticles.get(a).getKeywords() , articlesFromDbSet2.get(a).getKeywords() );
 
         }
-
-
-
     }
 
 
@@ -460,12 +447,12 @@ public class NewsDbTest extends InstrumentationTestCase {
                 keywords.add("horse");
             }
             if( a==3 ) {
-                keywords.add("donkey");
+                keywords.add("monkey");
                 keywords.add("elephant");
                 keywords.add("cat");
                 keywords.add("eagle");
                 keywords.add("giraffe");
-                keywords.add("chicken" + a);
+                keywords.add("eagle");
             }
             if( a==4 ) {
                 keywords.add("chicken");
@@ -482,19 +469,21 @@ public class NewsDbTest extends InstrumentationTestCase {
 
         // CHECK FIRST ARTICLE FOR 2 MATCHING KEYWORDS
         List<Article> matchingArticles = newsDb.getMatchingArticles( articlesFromDb.get(0).getKeywords() , 2 );
-
         assertNotNull(matchingArticles);
-
-        assertEquals( matchingArticles.size() , 4 );
-
+        assertEquals( 4 , matchingArticles.size() );
         // MATCHING ARTICLES SHOULD BE 0 ,1 , 2, 4
+        assertEquals( articles.get(0).getTitle() , matchingArticles.get(0).getTitle() );
+        assertEquals( articles.get(1).getTitle() , matchingArticles.get(1).getTitle() );
+        assertEquals( articles.get(2).getTitle(), matchingArticles.get(2).getTitle());
+        assertEquals( articles.get(4).getTitle() , matchingArticles.get(3).getTitle() );
 
-
-
-
-
-
-
+        // CHECK SECOND ARTICLE FOR 3 MATCHING KEYWORDS
+        matchingArticles = newsDb.getMatchingArticles( articlesFromDb.get(1).getKeywords() , 3 );
+        assertNotNull(matchingArticles);
+        assertEquals( 2 , matchingArticles.size() );
+        // MATCHING ARTICLES SHOULD BE 1 , 3
+        assertEquals( articles.get(1).getTitle() , matchingArticles.get(0).getTitle() );
+        assertEquals( articles.get(3).getTitle() , matchingArticles.get(1).getTitle() );
 
     }
 

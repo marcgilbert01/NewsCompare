@@ -283,7 +283,7 @@ public class NewsDb extends SQLiteOpenHelper {
 
     // METHOD WILL RETURNED ARTICLES WHO HAVE 2 OR MORE OF THE KEYWORDS PROVIDED
     //
-    public List<Article> getMatchingArticles( List<String> keywords , int nbMatching ){
+    public List<Article> getMatchingArticles( List<String> keywords , int nbMatchingKeywords ){
 
         List<Article> matchingArticles = new ArrayList<>();
 /*
@@ -341,7 +341,7 @@ public class NewsDb extends SQLiteOpenHelper {
 
             // DETECT IF MATCHING (WE USE EQUAL SO IT IS NOT ADDED TWICE)
             Article article = articles.get(articles.size()-1);
-            if( article.getKeywords().size()==nbMatching ){
+            if( article.getKeywords().size()==nbMatchingKeywords ){
                 matchingArticles.add(article);
             }
 
@@ -352,7 +352,25 @@ public class NewsDb extends SQLiteOpenHelper {
 
 
 
+    public List<Article> getMatchingArticles(Article article , int nbMatchingKeywords){
 
+        List<Article> matchingArticles = new ArrayList<>();
+
+        if( article.getKeywords()!=null && article.getKeywords().size()>0 ){
+
+            matchingArticles = getMatchingArticles(article.getKeywords() , nbMatchingKeywords );
+            int a = 0;
+            while( a<matchingArticles.size() ){
+                if( matchingArticles.get(a).getId() == article.getId() ){
+                    matchingArticles.remove(a);
+                    a = matchingArticles.size();
+                }
+                a++;
+            }
+        }
+
+        return matchingArticles;
+    }
 
 
 
