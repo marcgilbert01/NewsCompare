@@ -502,7 +502,7 @@ public class NewsDbTest extends InstrumentationTestCase {
 
 
     // SHOULD INCLUDE THE IMAGES
-    public void testDeleteOldArticles(){
+    public void testDeleteOldArticlesAndImages(){
 
         // DELETE DATABASE
         File dbFile = new File(NewsDb.DB_DIRECTORY + "/news.db");
