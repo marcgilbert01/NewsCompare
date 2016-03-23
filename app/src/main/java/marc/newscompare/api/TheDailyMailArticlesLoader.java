@@ -106,37 +106,40 @@ public class TheDailyMailArticlesLoader extends ArticlesLoader{
             // LOAD INFO
             if( alreadyLoaded == false ) {
 
-                Article article = new Article();
-                article.newsPaper = Article.NewsPaper.THE_DAILY_MAIL;
-                // TITLE, DESCRIPTION, AUTHOR
-                article.title = elementItem.getElementsByTagName("title").item(0).getTextContent();
-                article.description = elementItem.getElementsByTagName("description").item(0).getTextContent();
-                article.author = elementItem.getElementsByTagName("media:credit").item(0).getTextContent();
-                // DATE
-                String dateStr = elementItem.getElementsByTagName("pubDate").item(0).getTextContent();
-                Date date = simpleDateFormat.parse(dateStr);
-                article.date = date.getTime();
-                // CATEGORIES
-                //NodeList nodeListCategories = elementItem.getElementsByTagName("category");
-                //article.categories = new String[nodeListCategories.getLength()];
-                //for (int c = 0; c < article.categories.length; c++) {
-                //    article.categories[c] = nodeListCategories.item(c).getTextContent();
-                //}
-                // IMAGES
-                NodeList nodeListMediaContent = elementItem.getElementsByTagName("media:content");
-                String[] imagesUrls      = new String[nodeListMediaContent.getLength()];
-                String[] imagesFileNames = new String[nodeListMediaContent.getLength()];
-                for (int b = 0; b <imagesUrls.length ; b++) {
+                try {
+                    Article article = new Article();
+                    article.newsPaper = Article.NewsPaper.THE_DAILY_MAIL;
+                    // TITLE, DESCRIPTION, AUTHOR
+                    article.title = elementItem.getElementsByTagName("title").item(0).getTextContent();
+                    article.description = elementItem.getElementsByTagName("description").item(0).getTextContent();
+                    article.author = elementItem.getElementsByTagName("media:credit").item(0).getTextContent();
+                    // DATE
+                    String dateStr = elementItem.getElementsByTagName("pubDate").item(0).getTextContent();
+                    Date date = simpleDateFormat.parse(dateStr);
+                    article.date = date.getTime();
+                    // CATEGORIES
+                    //NodeList nodeListCategories = elementItem.getElementsByTagName("category");
+                    //article.categories = new String[nodeListCategories.getLength()];
+                    //for (int c = 0; c < article.categories.length; c++) {
+                    //    article.categories[c] = nodeListCategories.item(c).getTextContent();
+                    //}
+                    // IMAGES
+                    NodeList nodeListMediaContent = elementItem.getElementsByTagName("media:content");
+                    String[] imagesUrls = new String[nodeListMediaContent.getLength()];
+                    String[] imagesFileNames = new String[nodeListMediaContent.getLength()];
+                    for (int b = 0; b < imagesUrls.length; b++) {
+                        Element elementMediaContent = (Element) nodeListMediaContent.item(b);
+                        imagesUrls[b] = elementMediaContent.getAttribute("url");
+                        URL url = new URL(imagesUrls[b]);
+                        Bitmap bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream());
+                        imagesFileNames[b] = ArticlesLoader.saveImage(bitmap);
+                        bitmap = null;
+                    }
+                    articles.add(article);
 
-                    Element elementMediaContent = (Element) nodeListMediaContent.item(b);
-                    imagesUrls[b] = elementMediaContent.getAttribute("url");
-                    URL url = new URL( imagesUrls[b] );
-                    Bitmap bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream());
-                    imagesFileNames[b] = ArticlesLoader.saveImage(bitmap);
-                    bitmap = null;
+                }catch (Exception e){
+                    e.printStackTrace();
                 }
-
-                articles.add(article);
             }
         }
 

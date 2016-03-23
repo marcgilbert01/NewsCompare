@@ -4,20 +4,12 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.graphics.Bitmap;
 import android.os.Environment;
-import android.support.annotation.NonNull;
 
 import org.apache.commons.lang.StringEscapeUtils;
 
-import java.security.Key;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import marc.newscompare.api.Article;
 
@@ -26,13 +18,13 @@ import marc.newscompare.api.Article;
  */
 public class NewsDb extends SQLiteOpenHelper {
 
-    static public final String DATA_DIRECTORY = Environment.getExternalStorageDirectory()+"/NewsCompare/";
-    static private final String NEWS_DB_NAME = DATA_DIRECTORY+"news.db";
+    static private final String NEWS_DB_NAME = "news.db";
     static private final String ARTICLES_TABLE_NAME = "articles";
     static private final String KEYWORDS_TABLE_NAME = "keywords";
+    static public String DB_DIRECTORY = Environment.getExternalStorageDirectory()+"/newsCompare";
 
     public NewsDb(Context context) {
-        super(context, NEWS_DB_NAME, null, 1);
+        super(context, DB_DIRECTORY+"/"+NEWS_DB_NAME, null, 1);
     }
 
     @Override
@@ -271,9 +263,9 @@ public class NewsDb extends SQLiteOpenHelper {
         SQLiteDatabase sqLiteDatabase = getWritableDatabase();
 
         sqLiteDatabase.execSQL( "DELETE FROM "+KEYWORDS_TABLE_NAME+" WHERE articleId IN " +
-                "( SELECT id FROM "+ARTICLES_TABLE_NAME+" WHERE date<"+olderThan+" )" );
+                "( SELECT id FROM "+ARTICLES_TABLE_NAME+" WHERE createdAt<"+olderThan+" )" );
 
-        sqLiteDatabase.execSQL( "DELETE FROM "+ARTICLES_TABLE_NAME+" WHERE date<"+olderThan );
+        sqLiteDatabase.execSQL( "DELETE FROM "+ARTICLES_TABLE_NAME+" WHERE createdAt<"+olderThan );
 
         sqLiteDatabase.close();
 

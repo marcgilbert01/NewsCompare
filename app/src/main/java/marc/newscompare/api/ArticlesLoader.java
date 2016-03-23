@@ -1,6 +1,8 @@
 package marc.newscompare.api;
 
 import android.graphics.Bitmap;
+import android.os.Environment;
+import android.provider.MediaStore;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -19,9 +21,9 @@ import marc.newscompare.dao.NewsDb;
  */
 public abstract class ArticlesLoader {
 
+    static public final String IMG_DIRECTORY = Environment.getExternalStorageDirectory()+"/newsCompare/images";
 
     List<Article> articles = new ArrayList<>();
-
 
     public Article.NewsPaper getNewsPaperType(){
 
@@ -34,8 +36,6 @@ public abstract class ArticlesLoader {
 
         return newsPaper;
     }
-
-
 
     protected String getData(String urlStr) throws IOException {
 
@@ -68,7 +68,7 @@ public abstract class ArticlesLoader {
 
 
 
-    public static String saveImage(Bitmap bitmap) {
+    static public String saveImage(Bitmap bitmap) {
 
         String fileName = null;
 
@@ -78,16 +78,16 @@ public abstract class ArticlesLoader {
                 // CREATE FILE NAME
                 File imageFile = null;
                 while (imageFile == null || imageFile.exists()) {
-                    fileName = NewsDb.DATA_DIRECTORY + System.currentTimeMillis() + ".jpg";
+                    fileName = IMG_DIRECTORY +"/"+ System.currentTimeMillis() + ".jpg";
                     imageFile = new File(fileName);
                     Thread.sleep(50);
                 }
                 // CREATE FILE
-                if (!imageFile.getParentFile().exists()) {
+                if (  imageFile.getParentFile()!=null && !imageFile.getParentFile().exists() ) {
                     imageFile.getParentFile().mkdirs();
                 }
                 Boolean created = imageFile.createNewFile();
-                if (created == true) {
+                if ( created == true ) {
                     FileOutputStream fileOutputStream = new FileOutputStream(imageFile);
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 90, fileOutputStream);
                     fileOutputStream.close();
@@ -102,6 +102,20 @@ public abstract class ArticlesLoader {
         }
 
         return fileName;
+    }
+
+
+    static public void deletesImages(Long olderThan){
+
+        File imagesDirectory = new File( IMG_DIRECTORY );
+
+        for(File file : imagesDirectory.listFiles()  ){
+
+            if( file.lastModified() < olderThan ){
+                file.delete();
+            }
+        }
+
     }
 
 

@@ -43,7 +43,6 @@ public class NewsRecorderThread extends Thread{
                 newsDb.saveArticles( newArticles );
             }
 
-
             // GET KEYWORDS FROM ARTICLES
             List<Article> articlesWithNoKeywords = newsDb.getArticlesWithNoKeywords();
             YahooContentAnalysisApi yahooContentAnalysis = new YahooContentAnalysisApi();

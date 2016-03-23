@@ -26,8 +26,9 @@ public class Article {
     String imagesUrlStr;
     List<String> keywords = new ArrayList<>();
     long date;
-
     NewsPaper newsPaper;
+    List<Article> matchingArticles = new ArrayList<>();
+
 
     public enum NewsPaper{
 
@@ -162,7 +163,11 @@ public class Article {
         this.imagesUrlStr = stringBuilder.toString();
     }
 
+    public List<Article> getMatchingArticles() {
+        return matchingArticles;
+    }
 
-
-
+    public void setMatchingArticles(List<Article> matchingArticles) {
+        this.matchingArticles = matchingArticles;
+    }
 }

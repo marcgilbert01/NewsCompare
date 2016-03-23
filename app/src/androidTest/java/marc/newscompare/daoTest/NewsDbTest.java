@@ -3,6 +3,7 @@ package marc.newscompare.daoTest;
 import android.content.res.AssetManager;
 import android.test.InstrumentationTestCase;
 
+import org.apache.commons.io.FileUtils;
 import org.xml.sax.SAXException;
 
 import java.io.File;
@@ -15,6 +16,8 @@ import java.util.List;
 import javax.xml.parsers.ParserConfigurationException;
 
 import marc.newscompare.api.Article;
+import marc.newscompare.api.ArticlesLoader;
+import marc.newscompare.api.TheDailyMailArticlesLoader;
 import marc.newscompare.api.TheGuardianArticlesLoader;
 import marc.newscompare.dao.NewsDb;
 
@@ -27,7 +30,7 @@ public class NewsDbTest extends InstrumentationTestCase {
 
     public void testSaveArticles() {
         // DELETE DATABASE
-        File dbFile = new File(NewsDb.DATA_DIRECTORY + "/news.db");
+        File dbFile = new File( NewsDb.DB_DIRECTORY + "/news.db");
         if (dbFile.exists()) {
             dbFile.delete();
         }
@@ -72,7 +75,7 @@ public class NewsDbTest extends InstrumentationTestCase {
     public void testSaveArticleFromTheGuardian() {
 
         // DELETE DATABASE
-        File dbFile = new File(NewsDb.DATA_DIRECTORY + "/news.db");
+        File dbFile = new File(NewsDb.DB_DIRECTORY + "/news.db");
         if (dbFile.exists()) {
             dbFile.delete();
         }
@@ -135,12 +138,10 @@ public class NewsDbTest extends InstrumentationTestCase {
     }
 
 
-
-
     public void testSaveKeywords(){
 
         // DELETE DATABASE
-        File dbFile = new File(NewsDb.DATA_DIRECTORY + "/news.db");
+        File dbFile = new File(NewsDb.DB_DIRECTORY + "/news.db");
         if (dbFile.exists()) {
             dbFile.delete();
         }
@@ -217,7 +218,7 @@ public class NewsDbTest extends InstrumentationTestCase {
     public void testGetArticlesWithNoKeywords(){
 
         // DELETE DATABASE
-        File dbFile = new File(NewsDb.DATA_DIRECTORY + "/news.db");
+        File dbFile = new File(NewsDb.DB_DIRECTORY + "/news.db");
         if (dbFile.exists()) {
             dbFile.delete();
         }
@@ -284,10 +285,12 @@ public class NewsDbTest extends InstrumentationTestCase {
 
 
 
+
+
     public void testDeleteArticles(){
 
         // DELETE DATABASE
-        File dbFile = new File(NewsDb.DATA_DIRECTORY + "/news.db");
+        File dbFile = new File(NewsDb.DB_DIRECTORY + "/news.db");
         if (dbFile.exists()) {
             dbFile.delete();
         }
@@ -391,10 +394,16 @@ public class NewsDbTest extends InstrumentationTestCase {
 
 
 
+
+
+
+
+
+
     public void testGetMatchingArticles(){
 
         // DELETE DATABASE
-        File dbFile = new File(NewsDb.DATA_DIRECTORY + "/news.db");
+        File dbFile = new File(NewsDb.DB_DIRECTORY + "/news.db");
         if (dbFile.exists()) {
             dbFile.delete();
         }
@@ -474,7 +483,7 @@ public class NewsDbTest extends InstrumentationTestCase {
         // MATCHING ARTICLES SHOULD BE 0 ,1 , 2, 4
         assertEquals( articles.get(0).getTitle() , matchingArticles.get(0).getTitle() );
         assertEquals( articles.get(1).getTitle() , matchingArticles.get(1).getTitle() );
-        assertEquals( articles.get(2).getTitle(), matchingArticles.get(2).getTitle());
+        assertEquals(articles.get(2).getTitle(), matchingArticles.get(2).getTitle());
         assertEquals( articles.get(4).getTitle() , matchingArticles.get(3).getTitle() );
 
         // CHECK SECOND ARTICLE FOR 3 MATCHING KEYWORDS
@@ -487,6 +496,131 @@ public class NewsDbTest extends InstrumentationTestCase {
 
     }
 
+
+
+
+
+
+    // SHOULD INCLUDE THE IMAGES
+    public void testDeleteOldArticles(){
+
+        // DELETE DATABASE
+        File dbFile = new File(NewsDb.DB_DIRECTORY + "/news.db");
+        if (dbFile.exists()) {
+            dbFile.delete();
+        }
+
+        // DELETE IMAGES DIRECTORY
+        try {
+            FileUtils.deleteDirectory( new File( ArticlesLoader.IMG_DIRECTORY ) );
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // GET XML TEST FILES FRO THE GUARDIAN
+        AssetManager assetManager = getInstrumentation().getContext().getAssets();
+        String xml = null;
+        try {
+            InputStream is = assetManager.open("rssfeedtext_TheGuardian");
+            int size = is.available();
+            byte[] buffer = new byte[size];
+            is.read(buffer);
+            is.close();
+            xml = new String(buffer);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // GET THE GUARDIAN ARTICLES
+        TheGuardianArticlesLoader theGuardianArticlesLoader = new TheGuardianArticlesLoader();
+        List<Article> theGuardianArticles = null;
+        try {
+            theGuardianArticles = theGuardianArticlesLoader.parseNewArticles(xml, null);
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (SAXException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        // SAVE TO DB
+        NewsDb newsDb = new NewsDb( getInstrumentation().getContext() );
+        newsDb.saveArticles( theGuardianArticles );
+
+        // SLEEP 2 sec
+        Long olderThan = System.currentTimeMillis();
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // GET XML TEST FILES FRO THE GUARDIAN
+        xml = null;
+        try {
+            InputStream is = assetManager.open("rssfeedtext_TheDailyMail");
+            int size = is.available();
+            byte[] buffer = new byte[size];
+            is.read(buffer);
+            is.close();
+            xml = new String(buffer);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // GET THE GUARDIAN ARTICLES
+        TheDailyMailArticlesLoader theDailyMailArticlesLoader = new TheDailyMailArticlesLoader();
+        List<Article> theDailyMailArticles = null;
+        try {
+            theDailyMailArticles = theDailyMailArticlesLoader.parseNewArticles(xml,null);
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (SAXException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        // SAVE TO DB
+        newsDb.saveArticles( theDailyMailArticles );
+
+        List<Article> articlesFromDb = newsDb.getArticles(0L,null,false);
+
+        int totalImages = 0;
+        int nbOldImages = 0;
+        File imagesDirectory = new File(ArticlesLoader.IMG_DIRECTORY);
+        totalImages = imagesDirectory.listFiles().length;
+        for( File file : imagesDirectory.listFiles() ){
+            if( file.lastModified()<olderThan ){
+                nbOldImages++;
+            }
+        }
+
+        assertNotNull(articlesFromDb);
+
+        assertEquals(theDailyMailArticles.size() + theGuardianArticles.size(), articlesFromDb.size());
+
+        newsDb.deleteArticles(olderThan);
+
+        articlesFromDb = newsDb.getArticles( 0L , null , false );
+
+        assertEquals( theDailyMailArticles.size() , articlesFromDb.size() );
+
+        // CHECK IMAGES
+        ArticlesLoader.deletesImages(olderThan);
+
+        assertTrue( totalImages>0 );
+        assertTrue( nbOldImages>0 );
+
+        assertEquals(  totalImages-nbOldImages , imagesDirectory.listFiles().length  );
+
+
+    }
 
 
 

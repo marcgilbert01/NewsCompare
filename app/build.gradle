@@ -17,15 +17,24 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    packagingOptions {
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
+    }
+
+
 }
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.2.0'
     compile 'com.android.support:design:23.2.0'
     compile project(':marcviews')
     compile 'commons-lang:commons-lang:2.6'
     compile 'com.google.code.gson:gson:2.2.4'
+
+    testCompile 'junit:junit:4.12'
+    compile 'org.apache.commons:commons-io:1.3.2'
 
 }
