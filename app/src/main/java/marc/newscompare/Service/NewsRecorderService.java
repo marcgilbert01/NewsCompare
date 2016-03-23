@@ -2,7 +2,12 @@ package marc.newscompare.Service;
 
 import android.app.Service;
 import android.content.Intent;
+import android.os.Binder;
 import android.os.IBinder;
+
+import java.util.List;
+
+import marc.newscompare.api.Article;
 
 public class NewsRecorderService extends Service {
 
@@ -20,8 +25,11 @@ public class NewsRecorderService extends Service {
 
     @Override
     public void onCreate() {
-
         super.onCreate();
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
 
         if( newsRecorderThread==null || newsRecorderThread.getState()== Thread.State.TERMINATED ){
 
@@ -29,6 +37,7 @@ public class NewsRecorderService extends Service {
             newsRecorderThread.start();
 
         }
+        return START_STICKY;
 
     }
 
@@ -39,6 +48,13 @@ public class NewsRecorderService extends Service {
         newsRecorderThread.stopRecorder();
 
     }
+
+
+
+
+
+
+
 
 
 

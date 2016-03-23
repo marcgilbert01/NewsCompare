@@ -1,6 +1,7 @@
 package marc.newscompare.daoTest;
 
 import android.content.res.AssetManager;
+import android.os.Environment;
 import android.test.InstrumentationTestCase;
 
 import org.apache.commons.io.FileUtils;
@@ -27,13 +28,33 @@ import marc.newscompare.dao.NewsDb;
 public class NewsDbTest extends InstrumentationTestCase {
 
 
+    static final File DB_DIRECTORY = new File(Environment.getExternalStorageDirectory() + "/newsCompare"  );
+    static final File IMG_DIRECTORY = new File(Environment.getExternalStorageDirectory() + "/newsCompare/images"  );
 
-    public void testSaveArticles() {
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+
         // DELETE DATABASE
-        File dbFile = new File( NewsDb.DB_DIRECTORY + "/news.db");
+        File dbFile = new File( DB_DIRECTORY + "/news.db");
         if (dbFile.exists()) {
             dbFile.delete();
         }
+
+        ArticlesLoader.setImgDirectory( IMG_DIRECTORY.toString() );
+        // DELETE IMAGES DIRECTORY
+        try {
+            FileUtils.deleteDirectory( new File( ArticlesLoader.getImgDirectory() ) );
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+
+    }
+
+    public void testSaveArticles() {
+
         // PREPARE DUMMY ARTICLES
         List<Article> articles = new ArrayList<Article>();
         int nbArticlesToAdd = 5;
@@ -52,7 +73,7 @@ public class NewsDbTest extends InstrumentationTestCase {
             articles.add(article);
         }
         // SAVE ARTICLES TO DB
-        NewsDb newsDb = new NewsDb(getInstrumentation().getContext());
+        NewsDb newsDb = new NewsDb( getInstrumentation().getContext() , DB_DIRECTORY );
         newsDb.saveArticles(articles);
         // GET ARTICLES FROM DB
         List<Article> articlesFromDb = newsDb.getArticles(0L, null , false);
@@ -73,12 +94,6 @@ public class NewsDbTest extends InstrumentationTestCase {
 
 
     public void testSaveArticleFromTheGuardian() {
-
-        // DELETE DATABASE
-        File dbFile = new File(NewsDb.DB_DIRECTORY + "/news.db");
-        if (dbFile.exists()) {
-            dbFile.delete();
-        }
 
         // GET XML TEST FILES
         AssetManager assetManager = getInstrumentation().getContext().getAssets();
@@ -110,7 +125,7 @@ public class NewsDbTest extends InstrumentationTestCase {
         }
 
         // SAVE TO DB
-        NewsDb newsDb = new NewsDb( getInstrumentation().getContext() );
+        NewsDb newsDb = new NewsDb( getInstrumentation().getContext(), DB_DIRECTORY);
 
         newsDb.saveArticles(articles);
 
@@ -140,12 +155,6 @@ public class NewsDbTest extends InstrumentationTestCase {
 
     public void testSaveKeywords(){
 
-        // DELETE DATABASE
-        File dbFile = new File(NewsDb.DB_DIRECTORY + "/news.db");
-        if (dbFile.exists()) {
-            dbFile.delete();
-        }
-
         // PREPARE DUMMY ARTICLES
         List<Article> articles = new ArrayList<Article>();
         int nbArticlesToAdd = 5;
@@ -164,7 +173,7 @@ public class NewsDbTest extends InstrumentationTestCase {
         }
 
         // SAVE ARTICLES WITHOUT KEYWORDS
-        NewsDb newsDb = new NewsDb(getInstrumentation().getContext());
+        NewsDb newsDb = new NewsDb(getInstrumentation().getContext() , DB_DIRECTORY );
         newsDb.saveArticles(articles);
 
         // RETRIEVE ARTICLES WITHOUT KEYWORDS
@@ -217,11 +226,6 @@ public class NewsDbTest extends InstrumentationTestCase {
 
     public void testGetArticlesWithNoKeywords(){
 
-        // DELETE DATABASE
-        File dbFile = new File(NewsDb.DB_DIRECTORY + "/news.db");
-        if (dbFile.exists()) {
-            dbFile.delete();
-        }
         // PREPARE DUMMY ARTICLES
         List<Article> articles = new ArrayList<Article>();
         int nbArticlesToAdd = 6;
@@ -240,7 +244,7 @@ public class NewsDbTest extends InstrumentationTestCase {
         }
 
         // SAVE ARTICLES WITHOUT KEYWORDS
-        NewsDb newsDb = new NewsDb(getInstrumentation().getContext());
+        NewsDb newsDb = new NewsDb(getInstrumentation().getContext() , DB_DIRECTORY);
         newsDb.saveArticles(articles);
 
         // RETRIEVE ARTICLES WITHOUT KEYWORDS
@@ -289,12 +293,6 @@ public class NewsDbTest extends InstrumentationTestCase {
 
     public void testDeleteArticles(){
 
-        // DELETE DATABASE
-        File dbFile = new File(NewsDb.DB_DIRECTORY + "/news.db");
-        if (dbFile.exists()) {
-            dbFile.delete();
-        }
-
         // PREPARE DUMMY ARTICLES SET 1
         List<Article> articlesSet1 = new ArrayList<Article>();
         int nbArticlesToAdd = 3;
@@ -312,7 +310,7 @@ public class NewsDbTest extends InstrumentationTestCase {
             articlesSet1.add(article);
         }
         // SAVE ARTICLES WITHOUT KEYWORDS
-        NewsDb newsDb = new NewsDb(getInstrumentation().getContext());
+        NewsDb newsDb = new NewsDb( getInstrumentation().getContext() , DB_DIRECTORY );
         newsDb.saveArticles(articlesSet1);
         // RETRIEVE ARTICLES EXCLUDING THE KEYWORDS
         List<Article> articlesFromDbSet1 = newsDb.getArticles(0L, null , false);
@@ -402,11 +400,6 @@ public class NewsDbTest extends InstrumentationTestCase {
 
     public void testGetMatchingArticles(){
 
-        // DELETE DATABASE
-        File dbFile = new File(NewsDb.DB_DIRECTORY + "/news.db");
-        if (dbFile.exists()) {
-            dbFile.delete();
-        }
 
         // PREPARE DUMMY ARTICLES
         List<Article> articles = new ArrayList<Article>();
@@ -425,7 +418,7 @@ public class NewsDbTest extends InstrumentationTestCase {
             articles.add(article);
         }
         // SAVE ARTICLES WITHOUT KEYWORDS
-        NewsDb newsDb = new NewsDb(getInstrumentation().getContext());
+        NewsDb newsDb = new NewsDb( getInstrumentation().getContext() , DB_DIRECTORY );
         newsDb.saveArticles(articles);
         // RETRIEVE ARTICLES EXCLUDING THE KEYWORDS
         List<Article> articlesFromDb = newsDb.getArticles(0L, null , false);
@@ -504,19 +497,6 @@ public class NewsDbTest extends InstrumentationTestCase {
     // SHOULD INCLUDE THE IMAGES
     public void testDeleteOldArticlesAndImages(){
 
-        // DELETE DATABASE
-        File dbFile = new File(NewsDb.DB_DIRECTORY + "/news.db");
-        if (dbFile.exists()) {
-            dbFile.delete();
-        }
-
-        // DELETE IMAGES DIRECTORY
-        try {
-            FileUtils.deleteDirectory( new File( ArticlesLoader.IMG_DIRECTORY ) );
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
         // GET XML TEST FILES FRO THE GUARDIAN
         AssetManager assetManager = getInstrumentation().getContext().getAssets();
         String xml = null;
@@ -547,7 +527,7 @@ public class NewsDbTest extends InstrumentationTestCase {
         }
 
         // SAVE TO DB
-        NewsDb newsDb = new NewsDb( getInstrumentation().getContext() );
+        NewsDb newsDb = new NewsDb( getInstrumentation().getContext() , DB_DIRECTORY );
         newsDb.saveArticles( theGuardianArticles );
 
         // SLEEP 2 sec
@@ -593,7 +573,7 @@ public class NewsDbTest extends InstrumentationTestCase {
 
         int totalImages = 0;
         int nbOldImages = 0;
-        File imagesDirectory = new File(ArticlesLoader.IMG_DIRECTORY);
+        File imagesDirectory = new File( ArticlesLoader.getImgDirectory() );
         totalImages = imagesDirectory.listFiles().length;
         for( File file : imagesDirectory.listFiles() ){
             if( file.lastModified()<olderThan ){

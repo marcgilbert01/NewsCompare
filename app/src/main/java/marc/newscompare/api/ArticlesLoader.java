@@ -2,7 +2,6 @@ package marc.newscompare.api;
 
 import android.graphics.Bitmap;
 import android.os.Environment;
-import android.provider.MediaStore;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -14,16 +13,14 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import marc.newscompare.dao.NewsDb;
-
 /**
  * Created by gilbertm on 10/03/2016.
  */
 public abstract class ArticlesLoader {
 
-    static public final String IMG_DIRECTORY = Environment.getExternalStorageDirectory()+"/newsCompare/images";
-
+    static String imgDirectory = "";
     List<Article> articles = new ArrayList<>();
+
 
     public Article.NewsPaper getNewsPaperType(){
 
@@ -78,7 +75,7 @@ public abstract class ArticlesLoader {
                 // CREATE FILE NAME
                 File imageFile = null;
                 while (imageFile == null || imageFile.exists()) {
-                    fileName = IMG_DIRECTORY +"/"+ System.currentTimeMillis() + ".jpg";
+                    fileName = imgDirectory +"/"+ System.currentTimeMillis() + ".jpg";
                     imageFile = new File(fileName);
                     Thread.sleep(50);
                 }
@@ -107,7 +104,7 @@ public abstract class ArticlesLoader {
 
     static public void deletesImages(Long olderThan){
 
-        File imagesDirectory = new File( IMG_DIRECTORY );
+        File imagesDirectory = new File(imgDirectory);
 
         for(File file : imagesDirectory.listFiles()  ){
 
@@ -119,4 +116,14 @@ public abstract class ArticlesLoader {
     }
 
 
+    public static String getImgDirectory() {
+        return imgDirectory;
+    }
+
+    public static void setImgDirectory(String imgDirectory) {
+        ArticlesLoader.imgDirectory = imgDirectory;
+    }
+
+
 }
+

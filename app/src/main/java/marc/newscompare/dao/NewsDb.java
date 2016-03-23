@@ -8,6 +8,7 @@ import android.os.Environment;
 
 import org.apache.commons.lang.StringEscapeUtils;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,11 +22,12 @@ public class NewsDb extends SQLiteOpenHelper {
     static private final String NEWS_DB_NAME = "news.db";
     static private final String ARTICLES_TABLE_NAME = "articles";
     static private final String KEYWORDS_TABLE_NAME = "keywords";
-    static public String DB_DIRECTORY = Environment.getExternalStorageDirectory()+"/newsCompare";
 
-    public NewsDb(Context context) {
-        super(context, DB_DIRECTORY+"/"+NEWS_DB_NAME, null, 1);
+    public NewsDb(Context context , File dbDirectory) {
+        super(context, dbDirectory+"/"+NEWS_DB_NAME, null, 1);
     }
+
+
 
     @Override
     public void onCreate(SQLiteDatabase db) {

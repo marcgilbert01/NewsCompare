@@ -29,6 +29,8 @@ public class TheDailyMailArticlesLoader extends ArticlesLoader{
 
     static final String RSS_URL = "http://www.dailymail.co.uk/home/index.rss";
 
+
+
     @Override
     public List<Article> getNewArticles(List<Article> existingArticles) {
 

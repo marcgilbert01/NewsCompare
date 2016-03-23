@@ -30,6 +30,7 @@ public class TheGuardianArticlesLoader extends ArticlesLoader{
 
     static final String RSS_URL = "http://www.theguardian.com/uk/rss";
 
+
     @Override
     public List<Article> getNewArticles(List<Article> existingArticles ) {
 

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import marc.newscompare.R;
 import marc.newscompare.api.Article;
 import marc.newscompare.api.ArticlesLoader;
 import marc.newscompare.dao.NewsDb;
@@ -29,7 +30,7 @@ public class NewsRecorderThread extends Thread{
 
         while(exit==false) {
 
-            NewsDb newsDb = new NewsDb(context);
+            NewsDb newsDb = new NewsDb( context , context.getCacheDir() );
 
             // FOR EACH NEWSPAPER
             for (Article.NewsPaper newsPaper : Article.NewsPaper.values()) {
@@ -64,6 +65,7 @@ public class NewsRecorderThread extends Thread{
                 Long now = System.currentTimeMillis();
                 Long aWeekAgo = now - ( 7 * 24 * 3600 * 1000 );
                 newsDb.deleteArticles( aWeekAgo );
+                ArticlesLoader.deletesImages( aWeekAgo );
             }
 
             // SLEEP FOR 1 HOUR
