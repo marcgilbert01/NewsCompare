@@ -68,6 +68,11 @@ public class NewsRecorderThread extends Thread{
                 ArticlesLoader.deletesImages( aWeekAgo );
             }
 
+            // COMPARE ALL ARTICLES
+
+
+
+
             // SLEEP FOR 1 HOUR
             try {
                 sleep( 60*3600*1000 );

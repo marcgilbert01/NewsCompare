@@ -40,6 +40,7 @@ public class NewsDb extends SQLiteOpenHelper {
                 "author         TEXT," +
                 "imagesFileName TEXT," +
                 "newsPaper    INTEGER," +
+                "matchingArticlesIds INTEGER," +
                 "date         INTEGER," +
                 "createdAt    INTEGER" +
                 ")");
@@ -74,6 +75,7 @@ public class NewsDb extends SQLiteOpenHelper {
                             "       '" + StringEscapeUtils.escapeSql(article.getAuthor()) + "'       AS author," +
                             "       '" + article.getImagesFileNameStr() + "'     AS imagesFileName," +
                             "       '" + article.getNewsPaper().ordinal() + "' AS newsPaper," +
+                            "       '" + article.getMatchingArticlesIds() + "' AS matchingArticlesIds," +
                             "        " + article.getDate() + "           AS date," +
                             "        " + System.currentTimeMillis() + "  AS createdAt ");
                 } else {
@@ -85,6 +87,7 @@ public class NewsDb extends SQLiteOpenHelper {
                             "       '" + StringEscapeUtils.escapeSql(article.getAuthor()) + "'," +
                             "       '" + article.getImagesFileNameStr() + "'," +
                             "       '" + article.getNewsPaper().ordinal() + "'," +
+                            "       '" + article.getMatchingArticlesIds() + "'," +
                             "        " + article.getDate() + "," +
                             "        " + System.currentTimeMillis() + " ");
                 }
@@ -136,14 +139,14 @@ public class NewsDb extends SQLiteOpenHelper {
             // IS A KEYWORD
             if( cursor.getInt(0)==previousArticleId ){
                 Article article = articles.get(articles.size()-1);
-                article.getKeywords().add( cursor.getString( 10 ) );
+                article.getKeywords().add( cursor.getString( 11 ) );
             }
             // IS AN ARTICLE
             else {
 
                 Article article = readArticle(cursor);
                 if (includeKeywords){
-                    article.getKeywords().add(cursor.getString(10));
+                    article.getKeywords().add(cursor.getString(11));
                 }
                 articles.add(article);
                 previousArticleId = article.getId();
@@ -157,6 +160,35 @@ public class NewsDb extends SQLiteOpenHelper {
 
 
 
+    public List<Article> getArticles(Integer[] articlesIds ){
+
+        List<Article> articles = new ArrayList<>();
+
+        if( articlesIds!=null && articlesIds.length>0 ){
+
+            StringBuilder stringBuilder = new StringBuilder();
+            for(int i=0 ; i<articlesIds.length-1 ; i++){
+                stringBuilder.append( articlesIds[i]+"," );
+            }
+            stringBuilder.append( articlesIds[ articlesIds.length-1 ] );
+
+            String idListStr = stringBuilder.toString();
+
+            SQLiteDatabase sqLiteDatabase = this.getReadableDatabase();
+            Cursor cursor = sqLiteDatabase.rawQuery("SELECT * FROM " + ARTICLES_TABLE_NAME + " " +
+                    "WHERE id IN ("+idListStr+") " +
+                    "ORDER BY " + ARTICLES_TABLE_NAME + ".id", null);
+            //WHERE first_name IN ('Sarah', 'Jane', 'Heather');
+
+            while( cursor.moveToNext() ){
+
+                Article article = readArticle(cursor);
+                articles.add(article);
+            }
+        }
+
+        return articles;
+    }
 
 
 
@@ -258,6 +290,45 @@ public class NewsDb extends SQLiteOpenHelper {
     }
 
 
+    //  GET ARTICLES WHICH HAVE KEYWORDS
+    public List<Article> getArticlesWithKeywords(){
+
+        List<Article> articles = null;
+
+        SQLiteDatabase sqLiteDatabase = getReadableDatabase();
+
+        Cursor cursor = sqLiteDatabase.rawQuery( "SELECT * FROM "+ARTICLES_TABLE_NAME+" " +
+                "LEFT OUTER JOIN "+KEYWORDS_TABLE_NAME+" " +
+                "ON "+ARTICLES_TABLE_NAME+".id = "+KEYWORDS_TABLE_NAME+".articleId " +
+                "WHERE "+KEYWORDS_TABLE_NAME+".articleId IS NOT NULL"
+                ,null);
+
+
+        articles = new ArrayList<>();
+
+        int previousArticleId = -1;
+        while( cursor.moveToNext() ) {
+
+            // IS A KEYWORD
+            if( cursor.getInt(0)==previousArticleId ){
+                Article article = articles.get(articles.size()-1);
+                article.getKeywords().add( cursor.getString( 11 ) );
+            }
+            // IS AN ARTICLE
+            else {
+
+                Article article = readArticle(cursor);
+                article.getKeywords().add(cursor.getString(11));
+                articles.add(article);
+                previousArticleId = article.getId();
+            }
+
+        }
+
+
+        return articles;
+    }
+
 
 
     public void deleteArticles(Long olderThan){
@@ -280,6 +351,7 @@ public class NewsDb extends SQLiteOpenHelper {
     public List<Article> getMatchingArticles( List<String> keywords , int nbMatchingKeywords ){
 
         List<Article> matchingArticles = new ArrayList<>();
+
 /*
         StringBuilder stringBuilder = new StringBuilder();
         String[][] keywordsCombinations = new String[keywords.length][nbMatching];
@@ -322,13 +394,13 @@ public class NewsDb extends SQLiteOpenHelper {
             if( cursor.getInt(0)==previousArticleId ){
 
                 Article article = articles.get(articles.size()-1);
-                article.getKeywords().add( cursor.getString( 10 ) );
+                article.getKeywords().add( cursor.getString( 11 ) );
             }
             // IS AN ARTICLE
             else {
 
                 Article article = readArticle(cursor);
-                article.getKeywords().add(cursor.getString(10));
+                article.getKeywords().add(cursor.getString(11));
                 articles.add(article);
                 previousArticleId = article.getId();
             }
@@ -382,7 +454,8 @@ public class NewsDb extends SQLiteOpenHelper {
         article.setAuthor(cursor.getString(4));
         article.setImagesFileNameStr(cursor.getString(5));
         article.setNewsPaper(Article.NewsPaper.values()[cursor.getInt(6)]);
-        article.setDate(cursor.getLong(7));
+        article.setMatchingArticlesIds(cursor.getString(7));
+        article.setDate(cursor.getLong(8));
 
         return article;
     }

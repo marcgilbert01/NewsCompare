@@ -27,6 +27,7 @@ public class Article {
     List<String> keywords = new ArrayList<>();
     long date;
     NewsPaper newsPaper;
+    String matchingArticlesIds;
     List<Article> matchingArticles = new ArrayList<>();
 
 
@@ -169,5 +170,13 @@ public class Article {
 
     public void setMatchingArticles(List<Article> matchingArticles) {
         this.matchingArticles = matchingArticles;
+    }
+
+    public String getMatchingArticlesIds() {
+        return matchingArticlesIds;
+    }
+
+    public void setMatchingArticlesIds(String matchingArticlesIds) {
+        this.matchingArticlesIds = matchingArticlesIds;
     }
 }

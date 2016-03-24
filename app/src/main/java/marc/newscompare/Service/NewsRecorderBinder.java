@@ -24,14 +24,16 @@ public class NewsRecorderBinder extends Binder {
         newsDb = new NewsDb(context,context.getCacheDir());
     }
 
-    public List<Article> getMatchingArticles(Article.NewsPaper mainNewsPaper){
+    public List<Article> getArticlesWithMatch(Article.NewsPaper mainNewsPaper){
 
-        List<Article> matchingArticles = new ArrayList<>();
+        List<Article> articlesWithMatch = new ArrayList<>();
 
-        List<Article> mainNews PaperArticles = newsDb.getArticles(0L, mainNewsPaper, true);
+        List<Article> mainNewsPaperArticles = newsDb.getArticles(0L, mainNewsPaper, true);
+        if( mainNewsPaperArticles!=null && mainNewsPaperArticles.size()>0 ){
 
+        }
 
-        return matchingArticles;
+        return articlesWithMatch;
     }
 
 

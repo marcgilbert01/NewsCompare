@@ -67,6 +67,7 @@ public class NewsDbTest extends InstrumentationTestCase {
             article.setAuthor("author " + a);
             article.setImagesFileNameStr("file" + a + ".jpg,file2_" + a + ".jpg");
             article.setNewsPaper(Article.NewsPaper.THE_GUARDIAN);
+            article.setMatchingArticlesIds("51 " + a + ",52 " + a + ",53 " + a);
             article.setDate(now);
             //article.setBitmaps( ArticleTest.createDummyBitmaps() );
             //article.setKeywords(new String[]{"first keyword", "second keyword", "third keyword"});
@@ -86,6 +87,8 @@ public class NewsDbTest extends InstrumentationTestCase {
             assertTrue(articlesFromDb.get(a).getText().equals("text " + a));
             assertTrue(articlesFromDb.get(a).getAuthor().equals("author " + a));
             assertTrue(articlesFromDb.get(a).getImagesFileNameStr().equals("file" + a + ".jpg,file2_" + a + ".jpg"));
+            assertTrue(articlesFromDb.get(a).getMatchingArticlesIds().equals("51 " + a + ",52 "+a+",53 "+a));
+
             assertTrue(articlesFromDb.get(a).getDate() == now);
         }
     }
@@ -210,13 +213,13 @@ public class NewsDbTest extends InstrumentationTestCase {
 
             assertEquals( articleFromDb.getImagesFileNameStr() , articleFromDbIncludeKeywords.getImagesFileNameStr() );
 
-            assertEquals( articleFromDb.getDate() , articleFromDbIncludeKeywords.getDate() );
+            assertEquals(articleFromDb.getDate(), articleFromDbIncludeKeywords.getDate());
 
-            assertEquals( articleFromDb.getKeywords().get(0) , articleFromDbIncludeKeywords.getKeywords().get(0) );
+            assertEquals(articleFromDb.getKeywords().get(0), articleFromDbIncludeKeywords.getKeywords().get(0));
 
-            assertEquals( articleFromDb.getKeywords().get(1) , articleFromDbIncludeKeywords.getKeywords().get(1) );
+            assertEquals(articleFromDb.getKeywords().get(1), articleFromDbIncludeKeywords.getKeywords().get(1));
 
-            assertEquals( articleFromDb.getKeywords().get(2) , articleFromDbIncludeKeywords.getKeywords().get(2) );
+            assertEquals(articleFromDb.getKeywords().get(2), articleFromDbIncludeKeywords.getKeywords().get(2));
 
         }
 
@@ -283,6 +286,26 @@ public class NewsDbTest extends InstrumentationTestCase {
                 ak++;
             }
         }
+
+        // GET ARTICLES WHICH HAVE KEYWORDS
+        List<Article> articlesWithKeywords = newsDb.getArticlesWithKeywords();
+
+        assertNotNull(articlesWithKeywords);
+
+        assertEquals( articlesFromDb.size()/2 , articlesWithKeywords.size() );
+
+        ak = 0;
+        for(int a=0 ; a<articlesFromDb.size() ; a++ ){
+
+            if( !(a%2 ==0) ){
+
+                Article articleFromDb = articlesFromDb.get(a);
+                Article articleWithNoKeyWords = articlesWithNoKeywords.get(ak);
+                assertEquals( articleFromDb.getTitle() , articleWithNoKeyWords.getTitle() );
+                ak++;
+            }
+        }
+
 
 
     }
@@ -467,12 +490,12 @@ public class NewsDbTest extends InstrumentationTestCase {
         newsDb.saveKeywords(articlesFromDb);
 
         // GET ARTICLES FROM DB
-        articlesFromDb = newsDb.getArticles(0L,null,true);
+        articlesFromDb = newsDb.getArticles(0L, null, true);
 
         // CHECK FIRST ARTICLE FOR 2 MATCHING KEYWORDS
         List<Article> matchingArticles = newsDb.getMatchingArticles( articlesFromDb.get(0).getKeywords() , 2 );
         assertNotNull(matchingArticles);
-        assertEquals( 4 , matchingArticles.size() );
+        assertEquals(4, matchingArticles.size());
         // MATCHING ARTICLES SHOULD BE 0 ,1 , 2, 4
         assertEquals( articles.get(0).getTitle() , matchingArticles.get(0).getTitle() );
         assertEquals( articles.get(1).getTitle() , matchingArticles.get(1).getTitle() );
@@ -482,9 +505,9 @@ public class NewsDbTest extends InstrumentationTestCase {
         // CHECK SECOND ARTICLE FOR 3 MATCHING KEYWORDS
         matchingArticles = newsDb.getMatchingArticles( articlesFromDb.get(1).getKeywords() , 3 );
         assertNotNull(matchingArticles);
-        assertEquals( 2 , matchingArticles.size() );
+        assertEquals(2, matchingArticles.size());
         // MATCHING ARTICLES SHOULD BE 1 , 3
-        assertEquals( articles.get(1).getTitle() , matchingArticles.get(0).getTitle() );
+        assertEquals(articles.get(1).getTitle(), matchingArticles.get(0).getTitle());
         assertEquals( articles.get(3).getTitle() , matchingArticles.get(1).getTitle() );
 
     }
@@ -567,7 +590,7 @@ public class NewsDbTest extends InstrumentationTestCase {
         }
 
         // SAVE TO DB
-        newsDb.saveArticles( theDailyMailArticles );
+        newsDb.saveArticles(theDailyMailArticles);
 
         List<Article> articlesFromDb = newsDb.getArticles(0L,null,false);
 
@@ -594,14 +617,65 @@ public class NewsDbTest extends InstrumentationTestCase {
         // CHECK IMAGES
         ArticlesLoader.deletesImages(olderThan);
 
-        assertTrue( totalImages>0 );
-        assertTrue( nbOldImages>0 );
+        assertTrue(totalImages > 0);
+        assertTrue(nbOldImages > 0);
 
         assertEquals(  totalImages-nbOldImages , imagesDirectory.listFiles().length  );
 
 
     }
 
+
+
+    public void testGetArticlesFromIds(){
+
+        // PREPARE DUMMY ARTICLES
+        List<Article> articles = new ArrayList<Article>();
+        int nbArticlesToAdd = 5;
+        Long now = System.currentTimeMillis();
+        for (int a = 0; a < nbArticlesToAdd; a++) {
+            Article article = new Article();
+            article.setTitle(" tilte " + a);
+            article.setDescription("description'quote" + a);
+            article.setText("text " + a);
+            article.setAuthor("author " + a);
+            article.setImagesFileNameStr("file" + a + ".jpg,file2_" + a + ".jpg");
+            article.setNewsPaper(Article.NewsPaper.THE_GUARDIAN);
+            article.setMatchingArticlesIds("51 " + a + ",52 " + a + ",53 " + a);
+            article.setDate(now);
+            //article.setBitmaps( ArticleTest.createDummyBitmaps() );
+            //article.setKeywords(new String[]{"first keyword", "second keyword", "third keyword"});
+            articles.add(article);
+        }
+        // SAVE ARTICLES TO DB
+        NewsDb newsDb = new NewsDb( getInstrumentation().getContext() , DB_DIRECTORY );
+        newsDb.saveArticles(articles);
+        // GET ARTICLES FROM DB
+        List<Article> articlesFromDb = newsDb.getArticles( new Integer[]{2,3} );
+        assertNotNull(articlesFromDb);
+        assertEquals(2, articlesFromDb.size());
+        // CHECK ARTICLE 2
+        assertEquals( articles.get(1).getTitle()  , articlesFromDb.get(0).getTitle() );
+        assertEquals( articles.get(1).getDescription() , articlesFromDb.get(0).getDescription() );
+        assertEquals( articles.get(1).getText()   , articlesFromDb.get(0).getText() );
+        assertEquals( articles.get(1).getAuthor() , articlesFromDb.get(0).getAuthor() );
+        assertEquals( articles.get(1).getImagesFileNameStr() , articlesFromDb.get(0).getImagesFileNameStr() );
+        assertEquals( articles.get(1).getNewsPaper() , articlesFromDb.get(0).getNewsPaper() );
+        assertEquals(articles.get(1).getDate(), articlesFromDb.get(0).getDate());
+        assertEquals( articles.get(1).getMatchingArticlesIds() , articlesFromDb.get(0).getMatchingArticlesIds() );
+        // CHECK ARTICLE 3
+        assertEquals( articles.get(2).getTitle()  , articlesFromDb.get(1).getTitle() );
+        assertEquals( articles.get(2).getDescription() , articlesFromDb.get(1).getDescription() );
+        assertEquals( articles.get(2).getText()   , articlesFromDb.get(1).getText() );
+        assertEquals( articles.get(2).getAuthor() , articlesFromDb.get(1).getAuthor() );
+        assertEquals( articles.get(2).getImagesFileNameStr() , articlesFromDb.get(1).getImagesFileNameStr() );
+        assertEquals( articles.get(2).getNewsPaper() , articlesFromDb.get(1).getNewsPaper() );
+        assertEquals( articles.get(2).getDate() , articlesFromDb.get(1).getDate() );
+        assertEquals( articles.get(2).getMatchingArticlesIds() , articlesFromDb.get(1).getMatchingArticlesIds() );
+
+
+
+    }
 
 
 
