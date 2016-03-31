@@ -292,7 +292,7 @@ public class NewsDbTest extends InstrumentationTestCase {
 
         assertNotNull(articlesWithKeywords);
 
-        assertEquals( articlesFromDb.size()/2 , articlesWithKeywords.size() );
+        assertEquals(articlesFromDb.size() / 2, articlesWithKeywords.size());
 
         ak = 0;
         for(int a=0 ; a<articlesFromDb.size() ; a++ ){
@@ -397,7 +397,7 @@ public class NewsDbTest extends InstrumentationTestCase {
         newsDb.deleteArticles(olderThan);
 
         // GET ARTICLES
-        List<Article> remainingArticles = newsDb.getArticles( 0L ,null, true);
+        List<Article> remainingArticles = newsDb.getArticles(0L, null, true);
 
         assertNotNull(remainingArticles);
 
@@ -657,21 +657,114 @@ public class NewsDbTest extends InstrumentationTestCase {
         // CHECK ARTICLE 2
         assertEquals( articles.get(1).getTitle()  , articlesFromDb.get(0).getTitle() );
         assertEquals( articles.get(1).getDescription() , articlesFromDb.get(0).getDescription() );
-        assertEquals( articles.get(1).getText()   , articlesFromDb.get(0).getText() );
+        assertEquals(articles.get(1).getText(), articlesFromDb.get(0).getText());
         assertEquals( articles.get(1).getAuthor() , articlesFromDb.get(0).getAuthor() );
         assertEquals( articles.get(1).getImagesFileNameStr() , articlesFromDb.get(0).getImagesFileNameStr() );
         assertEquals( articles.get(1).getNewsPaper() , articlesFromDb.get(0).getNewsPaper() );
         assertEquals(articles.get(1).getDate(), articlesFromDb.get(0).getDate());
-        assertEquals( articles.get(1).getMatchingArticlesIds() , articlesFromDb.get(0).getMatchingArticlesIds() );
+        assertEquals(articles.get(1).getMatchingArticlesIds(), articlesFromDb.get(0).getMatchingArticlesIds());
         // CHECK ARTICLE 3
         assertEquals( articles.get(2).getTitle()  , articlesFromDb.get(1).getTitle() );
-        assertEquals( articles.get(2).getDescription() , articlesFromDb.get(1).getDescription() );
+        assertEquals(articles.get(2).getDescription(), articlesFromDb.get(1).getDescription());
         assertEquals( articles.get(2).getText()   , articlesFromDb.get(1).getText() );
         assertEquals( articles.get(2).getAuthor() , articlesFromDb.get(1).getAuthor() );
-        assertEquals( articles.get(2).getImagesFileNameStr() , articlesFromDb.get(1).getImagesFileNameStr() );
-        assertEquals( articles.get(2).getNewsPaper() , articlesFromDb.get(1).getNewsPaper() );
-        assertEquals( articles.get(2).getDate() , articlesFromDb.get(1).getDate() );
+        assertEquals(articles.get(2).getImagesFileNameStr(), articlesFromDb.get(1).getImagesFileNameStr());
+        assertEquals(articles.get(2).getNewsPaper(), articlesFromDb.get(1).getNewsPaper());
+        assertEquals(articles.get(2).getDate(), articlesFromDb.get(1).getDate());
         assertEquals( articles.get(2).getMatchingArticlesIds() , articlesFromDb.get(1).getMatchingArticlesIds() );
+
+
+
+    }
+
+
+
+    public void testUpdateMatchingArticles(){
+
+
+        // PREPARE DUMMY ARTICLES
+        List<Article> articles = new ArrayList<Article>();
+        int nbArticlesToAdd = 5;
+        Long now = System.currentTimeMillis();
+        for (int a = 0; a < nbArticlesToAdd; a++) {
+            Article article = new Article();
+            article.setTitle(" tilte " + a);
+            article.setDescription("description'quote" + a);
+            article.setText("text " + a);
+            article.setAuthor("author " + a);
+            article.setImagesFileNameStr("file" + a + ".jpg,file2_" + a + ".jpg");
+            article.setNewsPaper(Article.NewsPaper.THE_GUARDIAN);
+            article.setDate(now);
+            //article.setBitmaps( ArticleTest.createDummyBitmaps() );
+            //article.setKeywords(new String[]{"first keyword", "second keyword", "third keyword"});
+            articles.add(article);
+        }
+        // SAVE ARTICLES TO DB
+        NewsDb newsDb = new NewsDb( getInstrumentation().getContext() , DB_DIRECTORY );
+        newsDb.saveArticles(articles);
+        // GET ARTICLES FROM DB
+        List<Article> articlesFromDb = newsDb.getArticles( new Integer[]{2,3} );
+        // UPDATE ARTICLE 1 WITH MATCHING ARTICLES
+        Article article = articlesFromDb.get(0);
+        article.setMatchingArticlesIds("99,88,77,66");
+        newsDb.updateMatchingArticles(article);
+        // GET UPDATED ARTICLES
+        List<Article> updatedArticle = newsDb.getArticles( new Integer[]{article.getId()} );
+
+        assertNotNull(updatedArticle);
+
+        assertEquals( 1 , updatedArticle.size() );
+
+        assertEquals( article.getId() , updatedArticle.get(0).getId() );
+
+        assertEquals( article.getMatchingArticlesIds() , updatedArticle.get(0).getMatchingArticlesIds() );
+
+    }
+
+
+
+    public void testGetArticlesWithMatchingArticles(){
+
+        // PREPARE DUMMY ARTICLES
+        List<Article> articles = new ArrayList<Article>();
+        int nbArticlesToAdd = 5;
+        Long now = System.currentTimeMillis();
+        for (int a = 0; a < nbArticlesToAdd; a++) {
+            Article article = new Article();
+            article.setTitle(" tilte " + a);
+            article.setDescription("description'quote" + a);
+            article.setText("text " + a);
+            article.setAuthor("author " + a);
+            article.setImagesFileNameStr("file" + a + ".jpg,file2_" + a + ".jpg");
+            article.setNewsPaper(Article.NewsPaper.THE_GUARDIAN);
+            article.setDate(now);
+            if( a==1 || a==3 ) {
+                article.setMatchingArticlesIds("4,0");
+            }
+            else{
+                article.setMatchingArticlesIds(null);
+            }
+            articles.add(article);
+        }
+        // SAVE ARTICLES TO DB
+        NewsDb newsDb = new NewsDb( getInstrumentation().getContext() , DB_DIRECTORY );
+        newsDb.saveArticles(articles);
+        // GET ARTICLES FROM DB
+        List<Article> articlesWithMatchingArticles = newsDb.getArticlesWithMatchingArticles(0L, Article.NewsPaper.THE_GUARDIAN);
+
+        assertNotNull(articlesWithMatchingArticles);
+
+        assertEquals( 2 , articlesWithMatchingArticles.size());
+
+        assertEquals( articles.get(1).getTitle(), articlesWithMatchingArticles.get(0).getTitle() );
+
+        assertEquals( articles.get(3).getTitle() , articlesWithMatchingArticles.get(1).getTitle() );
+
+        articlesWithMatchingArticles = newsDb.getArticlesWithMatchingArticles(0L, Article.NewsPaper.THE_DAILY_MAIL);
+
+        assertNotNull( articlesWithMatchingArticles );
+
+        assertEquals( 0 , articlesWithMatchingArticles.size() );
 
 
 

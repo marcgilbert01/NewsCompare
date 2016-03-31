@@ -1,6 +1,7 @@
 package marc.newscompare.Service;
 
 import android.content.Context;
+import android.os.Environment;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,7 +31,8 @@ public class NewsRecorderThread extends Thread{
 
         while(exit==false) {
 
-            NewsDb newsDb = new NewsDb( context , context.getCacheDir() );
+            //NewsDb newsDb = new NewsDb( context , context.getCacheDir() );
+            NewsDb newsDb = new NewsDb( context , Environment.getExternalStorageDirectory() );
 
             // FOR EACH NEWSPAPER
             for (Article.NewsPaper newsPaper : Article.NewsPaper.values()) {
@@ -46,32 +48,47 @@ public class NewsRecorderThread extends Thread{
 
             // GET KEYWORDS FROM ARTICLES
             List<Article> articlesWithNoKeywords = newsDb.getArticlesWithNoKeywords();
-            YahooContentAnalysisApi yahooContentAnalysis = new YahooContentAnalysisApi();
-            for(Article article : articlesWithNoKeywords  ){
+            if( articlesWithNoKeywords!=null && articlesWithNoKeywords.size()>0 ) {
 
-                // GET KEYWORDS FROM YAHOO API
-                String[] keywords = yahooContentAnalysis.getKeywords( article.getDescription() );
-                // IF NO KEYWORDS CREATE EMPTY ONE
-                if( keywords==null ) {
-                    keywords = new String[]{""};
+                YahooContentAnalysisApi yahooContentAnalysis = new YahooContentAnalysisApi();
+                for (Article article : articlesWithNoKeywords) {
+                    // GET KEYWORDS FROM YAHOO API
+                    String[] keywords = yahooContentAnalysis.getKeywords(article.getDescription());
+                    // IF NO KEYWORDS CREATE EMPTY ONE
+                    if (keywords == null) {
+                        keywords = new String[]{""};
+                    }
+                    List<String> keywordList = new ArrayList<String>(Arrays.asList(keywords));
+                    article.setKeywords(keywordList);
+                    // SAVE KEYWORDS ( NOT WORKING WHEN TOO MANY SELECT )
+                    List<Article> articlesWithKeywords = new ArrayList<>();
+                    articlesWithKeywords.add(article);
+                    newsDb.saveKeywords(articlesWithKeywords);
+                    // DELETE OLDER ARTICLES (OLDER THAN ONE WEEK)
+                    Long now = System.currentTimeMillis();
+                    Long aWeekAgo = now - (7 * 24 * 3600 * 1000);
+                    newsDb.deleteArticles(aWeekAgo);
+                    ArticlesLoader.deletesImages(aWeekAgo);
                 }
-                List<String> keywordList = new ArrayList<String>(Arrays.asList(keywords));
-                article.setKeywords(keywordList);
-                // SAVE KEYWORDS ( NOT WORKING WHEN TOO MANY SELECT )
-                List<Article> articlesWithKeywords = new ArrayList<>();
-                articlesWithKeywords.add(article);
-                newsDb.saveKeywords(articlesWithKeywords);
-                // DELETE OLDER ARTICLES (OLDER THAN ONE WEEK)
-                Long now = System.currentTimeMillis();
-                Long aWeekAgo = now - ( 7 * 24 * 3600 * 1000 );
-                newsDb.deleteArticles( aWeekAgo );
-                ArticlesLoader.deletesImages( aWeekAgo );
             }
+            // COMPARE ALL ARTICLES AND SAVE MATCHING ARTICLES
+            List<Article> allArticles = newsDb.getArticles(0L,null,true);
+            for(Article article : allArticles  ){
 
-            // COMPARE ALL ARTICLES
+                List<Article> matchingArticles = newsDb.getMatchingArticles(article,2);
+                // IF MATCHING ARTICLES FOUND SAVE
+                if( matchingArticles!=null && matchingArticles.size()>0 ) {
 
-
-
+                    StringBuilder stringBuilder = new StringBuilder();
+                    for ( int a=0 ; a<matchingArticles.size()-1 ; a++ ) {
+                        stringBuilder.append( matchingArticles.get(a).getId()+"," );
+                    }
+                    stringBuilder.append( matchingArticles.get(matchingArticles.size()-1).getId() );
+                    article.setMatchingArticlesIds(stringBuilder.toString());
+                    // SAVE TO DB
+                    newsDb.updateMatchingArticles(article);
+                }
+            }
 
             // SLEEP FOR 1 HOUR
             try {

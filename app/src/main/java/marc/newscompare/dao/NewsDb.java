@@ -266,7 +266,7 @@ public class NewsDb extends SQLiteOpenHelper {
 //  GET ARTICLES WHICH HAVE NOT GOT ANY KEYWORDS
     public List<Article> getArticlesWithNoKeywords(){
 
-        List<Article> articles = null;
+        List<Article> articles = new ArrayList<>();
 
         SQLiteDatabase sqLiteDatabase = getReadableDatabase();
 
@@ -351,24 +351,6 @@ public class NewsDb extends SQLiteOpenHelper {
     public List<Article> getMatchingArticles( List<String> keywords , int nbMatchingKeywords ){
 
         List<Article> matchingArticles = new ArrayList<>();
-
-/*
-        StringBuilder stringBuilder = new StringBuilder();
-        String[][] keywordsCombinations = new String[keywords.length][nbMatching];
-        for(int row=0 ; row<keywordsCombinations.length ; row++  ){
-
-            //keywordsCombinations[row][0] = keywords[row];
-            for(int col=row ; col<keywordsCombinations[0].length ; col++  ){
-
-               //keywordsCombinations[row][col] = keywords[col];
-               stringBuilder.append( KEYWORDS_TABLE_NAME+".keyword = "+keywords[col]+" AND " );
-            }
-            if( row<keywordsCombinations.length-1 ) {
-                stringBuilder.append(" OR \n");
-            }
-        }
-        String keywordsConditions = stringBuilder.toString();
-*/
 
         StringBuilder stringBuilderKeywords = new StringBuilder();
         stringBuilderKeywords.append( " (" );
@@ -462,8 +444,37 @@ public class NewsDb extends SQLiteOpenHelper {
 
 
 
+    public void updateMatchingArticles(Article article) {
+
+        SQLiteDatabase sqLiteDatabase = getWritableDatabase();
+        sqLiteDatabase.execSQL("UPDATE " + ARTICLES_TABLE_NAME + " SET " +
+                "matchingArticlesIds = '" + article.getMatchingArticlesIds() + "' " +
+                "WHERE id = " + article.getId());
+        // UPDATE COMPANY SET ADDRESS = 'Texas' WHERE ID = 6;
+        sqLiteDatabase.close();
+
+    }
 
 
+    public List<Article> getArticlesWithMatchingArticles( Long dateFrom , Article.NewsPaper newsPaper ){
+
+        List<Article> articles = new ArrayList<>();
+
+        SQLiteDatabase sqLiteDatabase = getReadableDatabase();
+        Cursor cursor = sqLiteDatabase.rawQuery("SELECT * FROM " + ARTICLES_TABLE_NAME + " " +
+                "WHERE matchingArticlesIds !='null' AND " +
+                "date>"+dateFrom+" AND " +
+                "newsPaper=" + newsPaper.ordinal() + " " +
+                "ORDER BY id", null);
+
+        while( cursor.moveToNext() ){
+            articles.add( readArticle(cursor) );
+        }
+
+        sqLiteDatabase.close();
+
+        return articles;
+    }
 
 
 

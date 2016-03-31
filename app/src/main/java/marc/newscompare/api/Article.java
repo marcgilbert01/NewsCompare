@@ -27,7 +27,7 @@ public class Article {
     List<String> keywords = new ArrayList<>();
     long date;
     NewsPaper newsPaper;
-    String matchingArticlesIds;
+    String matchingArticlesIds = null;
     List<Article> matchingArticles = new ArrayList<>();
 
 

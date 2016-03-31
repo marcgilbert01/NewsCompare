@@ -18,7 +18,7 @@ import java.util.List;
  */
 public abstract class ArticlesLoader {
 
-    static String imgDirectory = "";
+    static String imgDirectory = Environment.getExternalStorageDirectory()+"/newsCompare/images";
     List<Article> articles = new ArrayList<>();
 
 
