@@ -13,4 +13,11 @@
     tools:context=".UI.MainActivity"
     tools:showIn="@layout/activity_main">
 
+    <marc.marcviews.OpenRightView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/openRightViewArticles"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"/>
 </RelativeLayout>

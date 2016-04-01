@@ -11,7 +11,7 @@
     <ImageView
         android:layout_width="120dp"
         android:layout_height="80dp"
-        android:id="@+id/imageView"
+        android:id="@+id/imageViewArticlePhoto"
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
@@ -23,8 +23,8 @@
         android:layout_height="wrap_content"
         android:text="This is the article description which could be long but will have to be limited in characters"
         android:id="@+id/textViewArticleDescription"
-        android:layout_toLeftOf="@+id/imageView"
-        android:layout_alignBottom="@+id/imageView"
+        android:layout_toLeftOf="@+id/imageViewArticlePhoto"
+        android:layout_alignBottom="@+id/imageViewArticlePhoto"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_below="@+id/linearLayout"
@@ -35,22 +35,37 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:layout_toLeftOf="@+id/imageView"
-        android:layout_toStartOf="@+id/imageView"
+        android:layout_toLeftOf="@+id/imageViewArticlePhoto"
+        android:layout_toStartOf="@+id/imageViewArticlePhoto"
         android:id="@+id/linearLayout">
 
         <ImageView
-            android:layout_width="100dp"
-            android:layout_height="20dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:id="@+id/imageViewLogo1"
             android:src="@drawable/theguardianlogo"
-            />
+            android:layout_weight="2"
+            android:scaleType="centerInside"
+            android:adjustViewBounds="true"
+            android:layout_marginRight="2dp"/>
 
         <ImageView
-            android:layout_width="100dp"
-            android:layout_height="20dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:id="@+id/imageViewLogo2"
             android:src="@drawable/dailymailogo"
-            android:layout_marginLeft="8dp"/>
+            android:layout_weight="2"
+            android:scaleType="centerInside"
+            android:adjustViewBounds="true"
+            android:layout_marginLeft="2dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="+2"
+            android:id="@+id/textViewPlusNumber"
+            android:layout_weight="3"
+            android:gravity="right"/>
     </LinearLayout>
 </RelativeLayout>

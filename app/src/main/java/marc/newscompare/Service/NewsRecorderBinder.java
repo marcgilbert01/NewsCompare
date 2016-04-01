@@ -41,7 +41,7 @@ public class NewsRecorderBinder extends Binder {
 
 
 
-    interface OnArticlesReadyListener {
+    public interface OnArticlesReadyListener {
 
         public void OnArticlesReady(List<Article> articles);
 
