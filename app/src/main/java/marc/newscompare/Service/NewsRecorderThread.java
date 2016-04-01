@@ -3,6 +3,7 @@ package marc.newscompare.Service;
 import android.content.Context;
 import android.os.Environment;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -18,6 +19,7 @@ import yahooapi.contentAnalysis.YahooContentAnalysisApi;
  */
 public class NewsRecorderThread extends Thread{
 
+
     private Context context;
     private Boolean exit = false;
 
@@ -29,10 +31,11 @@ public class NewsRecorderThread extends Thread{
     public void run() {
         super.run();
 
-        while(exit==false) {
+        NewsDb newsDb = new NewsDb( context , new File( context.getCacheDir()+NewsRecorderService.DB_SUB_DIR ) );
+        //NewsDb newsDb = new NewsDb( context , new File( Environment.getExternalStorageDirectory()+NewsRecorderService.DB_SUB_DIR ) );
+        ArticlesLoader.setImageDirectory( new File(context.getCacheDir()+NewsRecorderService.IMG_ARTICLES_SUB_DIR ) );
 
-            //NewsDb newsDb = new NewsDb( context , context.getCacheDir() );
-            NewsDb newsDb = new NewsDb( context , Environment.getExternalStorageDirectory() );
+        while(exit==false) {
 
             // FOR EACH NEWSPAPER
             for (Article.NewsPaper newsPaper : Article.NewsPaper.values()) {

@@ -1,5 +1,6 @@
 package marc.newscompare.api;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
@@ -134,7 +135,7 @@ public class TheDailyMailArticlesLoader extends ArticlesLoader{
                         imagesUrls[b] = elementMediaContent.getAttribute("url");
                         URL url = new URL(imagesUrls[b]);
                         Bitmap bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream());
-                        imagesFileNames[b] = ArticlesLoader.saveImage(bitmap);
+                        imagesFileNames[b] = saveImage(bitmap);
                         bitmap = null;
                     }
                     articles.add(article);

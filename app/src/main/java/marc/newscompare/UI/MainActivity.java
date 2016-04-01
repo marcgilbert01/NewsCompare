@@ -10,10 +10,16 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import marc.marcviews.OpenRightRecyclerView;
 import marc.newscompare.R;
 import marc.newscompare.Service.NewsRecorderService;
 
 public class MainActivity extends AppCompatActivity {
+
+    OpenRightRecyclerView openRightRecyclerView;
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -22,17 +28,35 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-
-
-        // START SERVICE FOR TESTING
+        // START SERVICE
         Intent intent = new Intent(this, NewsRecorderService.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startService(intent);
+
+        //
+
+
 
 
 
         finish();
     }
+
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+
+
+
+
+
+    }
+
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

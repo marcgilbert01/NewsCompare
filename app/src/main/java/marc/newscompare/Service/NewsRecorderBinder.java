@@ -24,16 +24,27 @@ public class NewsRecorderBinder extends Binder {
         newsDb = new NewsDb(context,context.getCacheDir());
     }
 
-    public List<Article> getArticlesWithMatch(Article.NewsPaper mainNewsPaper){
+    public void loadArticlesWithMatchingArticles(Article.NewsPaper mainNewsPaper, final OnArticlesReadyListener onArticlesReadyListener){
 
-        List<Article> articlesWithMatch = new ArrayList<>();
 
-        List<Article> mainNewsPaperArticles = newsDb.getArticles(0L, mainNewsPaper, true);
-        if( mainNewsPaperArticles!=null && mainNewsPaperArticles.size()>0 ){
+        new Thread(){
+            @Override
+            public void run() {
+                super.run();
+                List<Article> articlesWithMatchingArticles = new ArrayList<>();
+                articlesWithMatchingArticles = newsDb.getArticlesWithMatchingArticles(0L, null);
+                onArticlesReadyListener.OnArticlesReady(articlesWithMatchingArticles);
+            }
+        }.start();
 
-        }
+    }
 
-        return articlesWithMatch;
+
+
+    interface OnArticlesReadyListener {
+
+        public void OnArticlesReady(List<Article> articles);
+
     }
 
 

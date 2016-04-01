@@ -1,5 +1,7 @@
 package marc.newscompare.api;
 
+import android.app.Application;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Environment;
 
@@ -18,9 +20,9 @@ import java.util.List;
  */
 public abstract class ArticlesLoader {
 
-    static String imgDirectory = Environment.getExternalStorageDirectory()+"/newsCompare/images";
-    List<Article> articles = new ArrayList<>();
+    static List<Article> articles = new ArrayList<>();
 
+    static File imageDirectory;
 
     public Article.NewsPaper getNewsPaperType(){
 
@@ -30,9 +32,10 @@ public abstract class ArticlesLoader {
                 newsPaper = newsPaper1;
             }
         }
-
         return newsPaper;
     }
+
+
 
     protected String getData(String urlStr) throws IOException {
 
@@ -65,17 +68,17 @@ public abstract class ArticlesLoader {
 
 
 
-    static public String saveImage(Bitmap bitmap) {
+    static public String saveImage( Bitmap bitmap ) {
 
         String fileName = null;
 
-        if( bitmap!=null ){
+        if( bitmap!=null  && imageDirectory!=null ){
 
             try {
                 // CREATE FILE NAME
                 File imageFile = null;
                 while (imageFile == null || imageFile.exists()) {
-                    fileName = imgDirectory +"/"+ System.currentTimeMillis() + ".jpg";
+                    fileName = imageDirectory.toString() + "/" + System.currentTimeMillis() + ".jpg";
                     imageFile = new File(fileName);
                     Thread.sleep(50);
                 }
@@ -104,26 +107,24 @@ public abstract class ArticlesLoader {
 
     static public void deletesImages(Long olderThan){
 
-        File imagesDirectory = new File(imgDirectory);
+        if( imageDirectory!=null ) {
 
-        for(File file : imagesDirectory.listFiles()  ){
-
-            if( file.lastModified() < olderThan ){
-                file.delete();
+            for (File file : imageDirectory.listFiles()) {
+                if (file.lastModified() < olderThan) {
+                    file.delete();
+                }
             }
+
         }
 
     }
 
-
-    public static String getImgDirectory() {
-        return imgDirectory;
+    public static File getImageDirectory() {
+        return imageDirectory;
     }
 
-    public static void setImgDirectory(String imgDirectory) {
-        ArticlesLoader.imgDirectory = imgDirectory;
+    public static void setImageDirectory(File imageDirectory) {
+        ArticlesLoader.imageDirectory = imageDirectory;
     }
-
-
 }
 

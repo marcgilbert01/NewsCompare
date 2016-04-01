@@ -11,17 +11,23 @@ import marc.newscompare.api.Article;
 
 public class NewsRecorderService extends Service {
 
+    static final String DB_SUB_DIR  = "/database";
+    static final String IMG_ARTICLES_SUB_DIR = "/articlesImages";
 
     NewsRecorderThread newsRecorderThread;
+    NewsRecorderBinder newsRecorderBinder;
+
 
     public NewsRecorderService() {
     }
 
     @Override
     public IBinder onBind(Intent intent) {
-        // TODO: Return the communication channel to the service.
-        throw new UnsupportedOperationException("Not yet implemented");
+
+        return  newsRecorderBinder;
     }
+
+
 
     @Override
     public void onCreate() {
@@ -34,8 +40,9 @@ public class NewsRecorderService extends Service {
         if( newsRecorderThread==null || newsRecorderThread.getState()== Thread.State.TERMINATED ){
 
             NewsRecorderThread newsRecorderThread = new NewsRecorderThread(getApplicationContext());
+            newsRecorderThread.setPriority(Thread.MIN_PRIORITY);
             newsRecorderThread.start();
-
+            newsRecorderBinder = new NewsRecorderBinder(getApplicationContext());
         }
         return START_STICKY;
 

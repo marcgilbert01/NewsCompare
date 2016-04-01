@@ -1,5 +1,6 @@
 package marc.newscompare.api;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
@@ -29,7 +30,6 @@ import javax.xml.parsers.ParserConfigurationException;
 public class TheGuardianArticlesLoader extends ArticlesLoader{
 
     static final String RSS_URL = "http://www.theguardian.com/uk/rss";
-
 
     @Override
     public List<Article> getNewArticles(List<Article> existingArticles ) {
@@ -130,7 +130,7 @@ public class TheGuardianArticlesLoader extends ArticlesLoader{
                     imagesUrls[b] = elementMediaContent.getAttribute("url");
                     URL url = new URL( imagesUrls[b] );
                     Bitmap bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream());
-                    imagesFileNames[b] = ArticlesLoader.saveImage(bitmap);
+                    imagesFileNames[b] = saveImage(bitmap);
                     bitmap = null;
                 }
 
