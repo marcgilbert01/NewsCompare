@@ -22,22 +22,36 @@ public class NewsRecorderThread extends Thread{
 
     private Context context;
     private Boolean exit = false;
+    private NewsDb newsDb;
 
-    public NewsRecorderThread(Context context) {
+    private NewsRecorderThreadListener newsRecorderThreadListener;
+    private Status status = Status.STOPPED;
+    public enum Status{
+
+        STOPPED,
+        LOADING_ARTICLES,
+        EXTRACTING_KEYWORDS,
+        COMPARING_ARTICLES,
+        SLEEPING;
+    }
+
+
+    public NewsRecorderThread(Context context, NewsDb newsDb) {
         this.context = context;
+        this.newsDb = newsDb;
     }
 
     @Override
     public void run() {
         super.run();
 
-        NewsDb newsDb = new NewsDb( context , new File( context.getCacheDir()+NewsRecorderService.DB_SUB_DIR ) );
-        //NewsDb newsDb = new NewsDb( context , new File( Environment.getExternalStorageDirectory()+NewsRecorderService.DB_SUB_DIR ) );
-        ArticlesLoader.setImageDirectory( new File(context.getCacheDir()+NewsRecorderService.IMG_ARTICLES_SUB_DIR ) );
-
         while(exit==false) {
 
             // FOR EACH NEWSPAPER
+            if( newsRecorderThreadListener!=null ){
+                status = Status.LOADING_ARTICLES;
+                newsRecorderThreadListener.onStatusChange( status );
+            }
             for (Article.NewsPaper newsPaper : Article.NewsPaper.values()) {
 
                 // GET EXISTING ARTICLES FROM DB
@@ -50,6 +64,10 @@ public class NewsRecorderThread extends Thread{
             }
 
             // GET KEYWORDS FROM ARTICLES
+            if( newsRecorderThreadListener!=null ){
+                status = Status.EXTRACTING_KEYWORDS;
+                newsRecorderThreadListener.onStatusChange( status );
+            }
             List<Article> articlesWithNoKeywords = newsDb.getArticlesWithNoKeywords();
             if( articlesWithNoKeywords!=null && articlesWithNoKeywords.size()>0 ) {
 
@@ -67,14 +85,14 @@ public class NewsRecorderThread extends Thread{
                     List<Article> articlesWithKeywords = new ArrayList<>();
                     articlesWithKeywords.add(article);
                     newsDb.saveKeywords(articlesWithKeywords);
-                    // DELETE OLDER ARTICLES (OLDER THAN ONE WEEK)
-                    Long now = System.currentTimeMillis();
-                    Long aWeekAgo = now - (7 * 24 * 3600 * 1000);
-                    newsDb.deleteArticles(aWeekAgo);
-                    ArticlesLoader.deletesImages(aWeekAgo);
                 }
             }
+
             // COMPARE ALL ARTICLES AND SAVE MATCHING ARTICLES
+            if( newsRecorderThreadListener!=null ){
+                status = Status.COMPARING_ARTICLES;
+                newsRecorderThreadListener.onStatusChange( status );
+            }
             List<Article> allArticles = newsDb.getArticles(0L,null,true);
             for(Article article : allArticles  ){
 
@@ -93,14 +111,28 @@ public class NewsRecorderThread extends Thread{
                 }
             }
 
-            // SLEEP FOR 1 HOUR
-            try {
-                sleep( 60*3600*1000 );
-                //sleep( 10000 );
+            // DELETE OLDER ARTICLES (OLDER THAN ONE WEEK)
+            Long now = System.currentTimeMillis();
+            Long aWeekAgo = now - (7 * 24 * 3600 * 1000);
+            newsDb.deleteArticles(aWeekAgo);
+            ArticlesLoader.deletesImages(aWeekAgo);
 
+            // SLEEP FOR 1 HOUR
+            if( newsRecorderThreadListener!=null ){
+                status = Status.SLEEPING;
+                newsRecorderThreadListener.onStatusChange( status );
+            }
+            try {
+                sleep( 3600*1000 );
+                //sleep( 10000 );
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+        }
+
+        if( newsRecorderThreadListener!=null ){
+            status = Status.STOPPED;
+            newsRecorderThreadListener.onStatusChange( status );
         }
 
     }
@@ -111,5 +143,19 @@ public class NewsRecorderThread extends Thread{
         exit = true;
         this.interrupt();
     }
+
+
+    public interface NewsRecorderThreadListener{
+
+        public void onStatusChange(Status status);
+
+    }
+
+    public void setOnNewsRecorderThreadListener(NewsRecorderThreadListener newsRecorderThreadListener){
+
+        this.newsRecorderThreadListener = newsRecorderThreadListener;
+    }
+
+
 
 }

@@ -138,6 +138,8 @@ public class TheDailyMailArticlesLoader extends ArticlesLoader{
                         imagesFileNames[b] = saveImage(bitmap);
                         bitmap = null;
                     }
+                    article.setImagesFilesNames(imagesFileNames);
+                    // ADD TO LIST
                     articles.add(article);
 
                 }catch (Exception e){

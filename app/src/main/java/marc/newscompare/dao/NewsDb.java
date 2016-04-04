@@ -460,12 +460,24 @@ public class NewsDb extends SQLiteOpenHelper {
 
         List<Article> articles = new ArrayList<>();
 
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append( "SELECT * FROM " + ARTICLES_TABLE_NAME + " " );
+        stringBuilder.append( "WHERE matchingArticlesIds !='null' AND " );
+        stringBuilder.append( "date>"+dateFrom+" " );
+        if( newsPaper!=null ) {
+            stringBuilder.append(" AND newsPaper=" + newsPaper.ordinal() + " ");
+        }
+        stringBuilder.append( "ORDER BY id");
+
         SQLiteDatabase sqLiteDatabase = getReadableDatabase();
+        Cursor cursor = sqLiteDatabase.rawQuery( stringBuilder.toString() , null);
+        /*
         Cursor cursor = sqLiteDatabase.rawQuery("SELECT * FROM " + ARTICLES_TABLE_NAME + " " +
                 "WHERE matchingArticlesIds !='null' AND " +
-                "date>"+dateFrom+" AND " +
-                "newsPaper=" + newsPaper.ordinal() + " " +
+                "date>"+dateFrom+" " +
+                " AND newsPaper=" + newsPaper.ordinal() + " " +
                 "ORDER BY id", null);
+        */
 
         while( cursor.moveToNext() ){
             articles.add( readArticle(cursor) );

@@ -3,11 +3,15 @@ package marc.newscompare.Service;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.Environment;
 import android.os.IBinder;
 
+import java.io.File;
 import java.util.List;
 
 import marc.newscompare.api.Article;
+import marc.newscompare.api.ArticlesLoader;
+import marc.newscompare.dao.NewsDb;
 
 public class NewsRecorderService extends Service {
 
@@ -16,10 +20,12 @@ public class NewsRecorderService extends Service {
 
     NewsRecorderThread newsRecorderThread;
     NewsRecorderBinder newsRecorderBinder;
-
+    NewsDb newsDbForThread;
+    NewsDb newsDbForBinder;
 
     public NewsRecorderService() {
     }
+
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -32,6 +38,14 @@ public class NewsRecorderService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        newsDbForThread = new NewsDb( getApplicationContext() , new File( getApplicationContext().getCacheDir()+NewsRecorderService.DB_SUB_DIR ) );
+        //newsDb = new NewsDb( getApplicationContext() , new File( Environment.getExternalStorageDirectory()+NewsRecorderService.DB_SUB_DIR ) );
+
+        newsDbForBinder = new NewsDb( getApplicationContext() , new File( getApplicationContext().getCacheDir()+NewsRecorderService.DB_SUB_DIR ) );
+
+        ArticlesLoader.setImageDirectory( new File(getApplicationContext().getCacheDir() + NewsRecorderService.IMG_ARTICLES_SUB_DIR));
+
     }
 
     @Override
@@ -39,10 +53,10 @@ public class NewsRecorderService extends Service {
 
         if( newsRecorderThread==null || newsRecorderThread.getState()== Thread.State.TERMINATED ){
 
-            NewsRecorderThread newsRecorderThread = new NewsRecorderThread(getApplicationContext());
+            NewsRecorderThread newsRecorderThread = new NewsRecorderThread( getApplicationContext() , newsDbForThread );
             newsRecorderThread.setPriority(Thread.MIN_PRIORITY);
             newsRecorderThread.start();
-            newsRecorderBinder = new NewsRecorderBinder(getApplicationContext());
+            newsRecorderBinder = new NewsRecorderBinder( getApplicationContext() , newsDbForBinder , newsRecorderThread );
         }
         return START_STICKY;
 

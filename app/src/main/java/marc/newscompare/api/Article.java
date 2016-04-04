@@ -10,6 +10,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import marc.newscompare.R;
 import marc.newscompare.dao.NewsDb;
 
 /**

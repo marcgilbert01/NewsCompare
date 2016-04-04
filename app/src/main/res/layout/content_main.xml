@@ -13,7 +13,7 @@
     tools:context=".UI.MainActivity"
     tools:showIn="@layout/activity_main">
 
-    <marc.marcviews.OpenRightView
+    <marc.customviews.OpenRightView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/openRightViewArticles"

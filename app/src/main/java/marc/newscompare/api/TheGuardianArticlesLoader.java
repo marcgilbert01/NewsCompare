@@ -133,8 +133,8 @@ public class TheGuardianArticlesLoader extends ArticlesLoader{
                     imagesFileNames[b] = saveImage(bitmap);
                     bitmap = null;
                 }
-
-
+                article.setImagesFilesNames(imagesFileNames);
+                // ADD TO LIST
                 articles.add(article);
             }
         }

@@ -41,10 +41,10 @@ public class NewsDbTest extends InstrumentationTestCase {
             dbFile.delete();
         }
 
-        ArticlesLoader.setImgDirectory( IMG_DIRECTORY.toString() );
+        ArticlesLoader.setImageDirectory( IMG_DIRECTORY );
         // DELETE IMAGES DIRECTORY
         try {
-            FileUtils.deleteDirectory( new File( ArticlesLoader.getImgDirectory() ) );
+            FileUtils.deleteDirectory( ArticlesLoader.getImageDirectory() );
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -596,7 +596,7 @@ public class NewsDbTest extends InstrumentationTestCase {
 
         int totalImages = 0;
         int nbOldImages = 0;
-        File imagesDirectory = new File( ArticlesLoader.getImgDirectory() );
+        File imagesDirectory = ArticlesLoader.getImageDirectory() ;
         totalImages = imagesDirectory.listFiles().length;
         for( File file : imagesDirectory.listFiles() ){
             if( file.lastModified()<olderThan ){

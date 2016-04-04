@@ -18,14 +18,15 @@ public class NewsRecorderBinder extends Binder {
 
     Context context;
     NewsDb newsDb;
+    NewsRecorderThread newsRecorderThread;
 
-    public NewsRecorderBinder(Context context) {
+    public NewsRecorderBinder(Context context, NewsDb newsDb, NewsRecorderThread newsRecorderThread) {
         this.context = context;
-        newsDb = new NewsDb(context,context.getCacheDir());
+        this.newsDb = newsDb;
+        this.newsRecorderThread = newsRecorderThread;
     }
 
     public void loadArticlesWithMatchingArticles(Article.NewsPaper mainNewsPaper, final OnArticlesReadyListener onArticlesReadyListener){
-
 
         new Thread(){
             @Override
@@ -39,21 +40,16 @@ public class NewsRecorderBinder extends Binder {
 
     }
 
-
-
     public interface OnArticlesReadyListener {
 
         public void OnArticlesReady(List<Article> articles);
-
     }
 
+    public NewsRecorderThread getNewsRecorderThread() {
+        return newsRecorderThread;
+    }
 
-
-
-
-
-
-
-
-
+    public void setNewsRecorderThread(NewsRecorderThread newsRecorderThread) {
+        this.newsRecorderThread = newsRecorderThread;
+    }
 }
