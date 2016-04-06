@@ -96,7 +96,7 @@ public class NewsDb extends SQLiteOpenHelper {
             String sql = stringBuilder.toString();
             SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
             sqLiteDatabase.execSQL(sql);
-            sqLiteDatabase.close();
+
         }
     }
 
@@ -154,6 +154,8 @@ public class NewsDb extends SQLiteOpenHelper {
 
         }
 
+        cursor.close();
+
         return articles;
     }
 
@@ -185,6 +187,9 @@ public class NewsDb extends SQLiteOpenHelper {
                 Article article = readArticle(cursor);
                 articles.add(article);
             }
+
+            cursor.close();
+
         }
 
         return articles;
@@ -197,8 +202,7 @@ public class NewsDb extends SQLiteOpenHelper {
     public void clearArticles( Long beforeDate ){
 
         SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
-        sqLiteDatabase.execSQL( "DELETE * FROM "+ARTICLES_TABLE_NAME+" WHERE date<"+beforeDate );
-        sqLiteDatabase.close();
+        sqLiteDatabase.execSQL("DELETE * FROM " + ARTICLES_TABLE_NAME + " WHERE date<" + beforeDate);
     }
 
 
@@ -249,7 +253,7 @@ public class NewsDb extends SQLiteOpenHelper {
                 String sql = stringBuilder.toString();
                 SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
                 sqLiteDatabase.execSQL(sql);
-                sqLiteDatabase.close();
+
             }
         }
     }
@@ -285,6 +289,8 @@ public class NewsDb extends SQLiteOpenHelper {
                articles.add(article);
             }
         }
+
+        cursor.close();
 
         return articles;
     }
@@ -325,6 +331,7 @@ public class NewsDb extends SQLiteOpenHelper {
 
         }
 
+        cursor.close();
 
         return articles;
     }
@@ -338,9 +345,8 @@ public class NewsDb extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL( "DELETE FROM "+KEYWORDS_TABLE_NAME+" WHERE articleId IN " +
                 "( SELECT id FROM "+ARTICLES_TABLE_NAME+" WHERE createdAt<"+olderThan+" )" );
 
-        sqLiteDatabase.execSQL( "DELETE FROM "+ARTICLES_TABLE_NAME+" WHERE createdAt<"+olderThan );
+        sqLiteDatabase.execSQL("DELETE FROM " + ARTICLES_TABLE_NAME + " WHERE createdAt<" + olderThan);
 
-        sqLiteDatabase.close();
 
     }
 
@@ -394,6 +400,8 @@ public class NewsDb extends SQLiteOpenHelper {
             }
 
         }
+
+        cursor.close();
 
         return matchingArticles;
     }
@@ -451,7 +459,6 @@ public class NewsDb extends SQLiteOpenHelper {
                 "matchingArticlesIds = '" + article.getMatchingArticlesIds() + "' " +
                 "WHERE id = " + article.getId());
         // UPDATE COMPANY SET ADDRESS = 'Texas' WHERE ID = 6;
-        sqLiteDatabase.close();
 
     }
 
@@ -478,12 +485,11 @@ public class NewsDb extends SQLiteOpenHelper {
                 " AND newsPaper=" + newsPaper.ordinal() + " " +
                 "ORDER BY id", null);
         */
-
         while( cursor.moveToNext() ){
             articles.add( readArticle(cursor) );
         }
 
-        sqLiteDatabase.close();
+        cursor.close();
 
         return articles;
     }

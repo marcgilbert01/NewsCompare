@@ -34,7 +34,28 @@ public class NewsRecorderBinder extends Binder {
                 super.run();
                 List<Article> articlesWithMatchingArticles = new ArrayList<>();
                 articlesWithMatchingArticles = newsDb.getArticlesWithMatchingArticles(0L, null);
+                articlesWithMatchingArticles = fillArticleWithMatchingArticles(articlesWithMatchingArticles);
                 onArticlesReadyListener.OnArticlesReady(articlesWithMatchingArticles);
+
+
+
+
+// TEST
+/*
+System.out.println( "###### nb Articles with matching articles from method =" + articlesWithMatchingArticles.size() );
+List<Article> tmpArticles = newsDb.getArticles(0L,null,false);
+List<Article> tmpArticlesWithMatch = new ArrayList<Article>();
+for( Article article : tmpArticles ){
+
+    if( article.getMatchingArticlesIds()!=null && article.getMatchingArticlesIds().length()>0 ){
+        tmpArticlesWithMatch.add(article);
+    }
+}
+System.out.println( "###### total nb Articles ="+tmpArticles.size()  );
+System.out.println( "###### nb Articles with matching articles from loop =" + tmpArticlesWithMatch.size() );
+*/
+
+
             }
         }.start();
 
@@ -52,4 +73,41 @@ public class NewsRecorderBinder extends Binder {
     public void setNewsRecorderThread(NewsRecorderThread newsRecorderThread) {
         this.newsRecorderThread = newsRecorderThread;
     }
+
+
+
+    public List<Article> fillArticleWithMatchingArticles(List<Article> articles){
+
+        int a = 0;
+        while( a<articles.size() ){
+
+            Article article = articles.get(a);
+            if( article.getMatchingArticlesIdsAsIntegers()!=null && article.getMatchingArticlesIdsAsIntegers().length>0 ){
+
+                List<Article> matchingArticles = new ArrayList<>();
+                // LOOK FOR MATCHING ARTICLES IN THE LIST
+                for(Integer articleId : article.getMatchingArticlesIdsAsIntegers() ){
+
+                   for(Article articleToCheck : articles ){
+
+                       if( articleId==articleToCheck.getId() ){
+                           matchingArticles.add( articleToCheck );
+                       }
+                   }
+                }
+                article.setMatchingArticles(matchingArticles);
+                articles.removeAll( matchingArticles );
+            }
+
+            a++;
+        }
+
+
+        return  articles;
+    }
+
+
+
+
+
 }

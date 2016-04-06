@@ -34,7 +34,10 @@ public class ArticlesOpenRightViewAdapter extends OpenRightView.OpenRightAdapter
 
     @Override
     public Fragment getFragment(int i) {
-        return null;
+
+        Fragment articleFragment = (Fragment) ArticleFragment.newInstance( articles.get(i) );
+
+        return articleFragment;
     }
 
     @Override

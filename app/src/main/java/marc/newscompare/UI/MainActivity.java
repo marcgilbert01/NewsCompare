@@ -6,6 +6,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -29,7 +30,7 @@ import marc.newscompare.Service.NewsRecorderThread;
 import marc.newscompare.api.Article;
 
 
-public class MainActivity extends AppCompatActivity implements NewsRecorderBinder.OnArticlesReadyListener, NewsRecorderThread.NewsRecorderThreadListener{
+public class MainActivity extends AppCompatActivity implements NewsRecorderBinder.OnArticlesReadyListener, NewsRecorderThread.NewsRecorderThreadListener, ArticleFragment.OnFragmentInteractionListener{
 
 
     OpenRightView openRightViewArticles;
@@ -140,6 +141,18 @@ public class MainActivity extends AppCompatActivity implements NewsRecorderBinde
         });
 
     }
+
+
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+    }
+
+    @Override
+    public void onBackPressed() {
+
+        openRightViewArticles.closeFragment();
+    }
+
 
 
 }

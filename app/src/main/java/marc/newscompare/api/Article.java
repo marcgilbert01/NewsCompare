@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +17,7 @@ import marc.newscompare.dao.NewsDb;
 /**
  * Created by gilbertm on 10/03/2016.
  */
-public class Article {
+public class Article implements Serializable{
 
     int id;
     String title;
@@ -180,4 +181,20 @@ public class Article {
     public void setMatchingArticlesIds(String matchingArticlesIds) {
         this.matchingArticlesIds = matchingArticlesIds;
     }
+
+    public Integer[] getMatchingArticlesIdsAsIntegers(){
+
+        Integer[] ids;
+
+        String[] idsStr = matchingArticlesIds.split(",");
+        ids = new Integer[idsStr.length];
+        for(int i=0 ; i<idsStr.length ;i++  ){
+            ids[i] = Integer.parseInt(idsStr[i]);
+        }
+
+        return ids;
+    }
+
+
+
 }

@@ -6,6 +6,7 @@ import android.os.Environment;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import marc.newscompare.R;
@@ -51,6 +52,7 @@ public class NewsRecorderThread extends Thread{
             if( newsRecorderThreadListener!=null ){
                 status = Status.LOADING_ARTICLES;
                 newsRecorderThreadListener.onStatusChange( status );
+                System.out.println( "###### NewsRecorderThread  status "+this.status + " "+new Date() );
             }
             for (Article.NewsPaper newsPaper : Article.NewsPaper.values()) {
 
@@ -67,6 +69,7 @@ public class NewsRecorderThread extends Thread{
             if( newsRecorderThreadListener!=null ){
                 status = Status.EXTRACTING_KEYWORDS;
                 newsRecorderThreadListener.onStatusChange( status );
+                System.out.println("###### NewsRecorderThread  status " + this.status+ " "+new Date());
             }
             List<Article> articlesWithNoKeywords = newsDb.getArticlesWithNoKeywords();
             if( articlesWithNoKeywords!=null && articlesWithNoKeywords.size()>0 ) {
@@ -92,6 +95,7 @@ public class NewsRecorderThread extends Thread{
             if( newsRecorderThreadListener!=null ){
                 status = Status.COMPARING_ARTICLES;
                 newsRecorderThreadListener.onStatusChange( status );
+                System.out.println("###### NewsRecorderThread  status " + this.status+ " "+new Date());
             }
             List<Article> allArticles = newsDb.getArticles(0L,null,true);
             for(Article article : allArticles  ){
@@ -121,6 +125,7 @@ public class NewsRecorderThread extends Thread{
             if( newsRecorderThreadListener!=null ){
                 status = Status.SLEEPING;
                 newsRecorderThreadListener.onStatusChange( status );
+                System.out.println("###### NewsRecorderThread  status " + this.status + " "+new Date());
             }
             try {
                 sleep( 3600*1000 );
