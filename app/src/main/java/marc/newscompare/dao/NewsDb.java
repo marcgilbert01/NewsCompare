@@ -4,7 +4,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.os.Environment;
 
 import org.apache.commons.lang.StringEscapeUtils;
 
@@ -20,8 +19,8 @@ import marc.newscompare.api.Article;
 public class NewsDb extends SQLiteOpenHelper {
 
     static private final String NEWS_DB_NAME = "news.db";
-    static private final String ARTICLES_TABLE_NAME = "articles";
-    static private final String KEYWORDS_TABLE_NAME = "keywords";
+    static private final String ARTICLES_TABLE = "articles";
+    static private final String KEYWORDS_TABLE = "keywords";
 
     public NewsDb(Context context , File dbDirectory) {
         super(context, dbDirectory+"/"+NEWS_DB_NAME, null, 1);
@@ -32,7 +31,7 @@ public class NewsDb extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         // CREATE TABLE ARTICLES
-        db.execSQL(" CREATE TABLE IF NOT EXISTS " + ARTICLES_TABLE_NAME + " ( " +
+        db.execSQL(" CREATE TABLE IF NOT EXISTS " + ARTICLES_TABLE + " ( " +
                 "id INTEGER PRIMARY KEY," +
                 "title          TEXT," +
                 "description    TEXT," +
@@ -45,7 +44,7 @@ public class NewsDb extends SQLiteOpenHelper {
                 "createdAt    INTEGER" +
                 ")");
         // CREATE KEYWORDS DB
-        db.execSQL(" CREATE TABLE IF NOT EXISTS " + KEYWORDS_TABLE_NAME + " ( " +
+        db.execSQL(" CREATE TABLE IF NOT EXISTS " + KEYWORDS_TABLE + " ( " +
                 "id INTEGER PRIMARY KEY," +
                 "keyword      TEXT," +
                 "articleId    INTEGER" +
@@ -60,42 +59,62 @@ public class NewsDb extends SQLiteOpenHelper {
     public void saveArticles(List<Article> articles) {
 
         if (articles != null && articles.size() > 0) {
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append("INSERT INTO '" + ARTICLES_TABLE_NAME + "'");
 
-            for (int a = 0; a < articles.size() ; a++) {
-                Article article = articles.get(a);
-                // SAVE TO DB
-                if (a == 0) {
-                    stringBuilder.append("SELECT " +
-                            "       NULL                      AS id," +
-                            "       '" + StringEscapeUtils.escapeSql(article.getTitle()) + "'       AS title," +
-                            "       '" + StringEscapeUtils.escapeSql(article.getDescription()) + "'  AS description," +
-                            "       '" + StringEscapeUtils.escapeSql(article.getText()) + "'         AS text," +
-                            "       '" + StringEscapeUtils.escapeSql(article.getAuthor()) + "'       AS author," +
-                            "       '" + article.getImagesFileNameStr() + "'     AS imagesFileName," +
-                            "       '" + article.getNewsPaper().ordinal() + "' AS newsPaper," +
-                            "       '" + article.getMatchingArticlesIds() + "' AS matchingArticlesIds," +
-                            "        " + article.getDate() + "           AS date," +
-                            "        " + System.currentTimeMillis() + "  AS createdAt ");
-                } else {
-                    stringBuilder.append("UNION ALL SELECT " +
-                            "       NULL ," +
-                            "       '" + StringEscapeUtils.escapeSql(article.getTitle()) + "'," +
-                            "       '" + StringEscapeUtils.escapeSql(article.getDescription()) + "'," +
-                            "       '" + StringEscapeUtils.escapeSql(article.getText()) + "'," +
-                            "       '" + StringEscapeUtils.escapeSql(article.getAuthor()) + "'," +
-                            "       '" + article.getImagesFileNameStr() + "'," +
-                            "       '" + article.getNewsPaper().ordinal() + "'," +
-                            "       '" + article.getMatchingArticlesIds() + "'," +
-                            "        " + article.getDate() + "," +
-                            "        " + System.currentTimeMillis() + " ");
-                }
+            int nbHundreds = articles.size()/100;
+            if( articles.size()%100!=0 ){
+                nbHundreds++;
             }
 
-            String sql = stringBuilder.toString();
-            SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
-            sqLiteDatabase.execSQL(sql);
+            for(int n=0 ; n<nbHundreds ; n++ ) {
+
+                List<Article> articlesToSave;
+
+                if (n < nbHundreds - 1) {
+                    articlesToSave = articles.subList(n * 100, n * 100 + 100);
+                } else {
+                    // LAST ONE
+                    articlesToSave = articles.subList(n * 100, articles.size() );
+                }
+
+                StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.append("INSERT INTO '" + ARTICLES_TABLE + "'");
+                for (int a = 0; a < articlesToSave.size(); a++) {
+                    Article article = articles.get(a);
+                    // SAVE TO DB
+                    if (a == 0) {
+                        stringBuilder.append("SELECT " +
+                                "       NULL                      AS id," +
+                                "       '" + StringEscapeUtils.escapeSql(article.getTitle()) + "'       AS title," +
+                                "       '" + StringEscapeUtils.escapeSql(article.getDescription()) + "'  AS description," +
+                                "       '" + StringEscapeUtils.escapeSql(article.getText()) + "'         AS text," +
+                                "       '" + StringEscapeUtils.escapeSql(article.getAuthor()) + "'       AS author," +
+                                "       '" + article.getImagesFileNameStr() + "'     AS imagesFileName," +
+                                "       '" + article.getNewsPaper().ordinal() + "' AS newsPaper," +
+                                "       '" + article.getMatchingArticlesIds() + "' AS matchingArticlesIds," +
+                                "        " + article.getDate() + "           AS date," +
+                                "        " + System.currentTimeMillis() + "  AS createdAt ");
+                    } else {
+                        stringBuilder.append("UNION ALL SELECT " +
+                                "       NULL ," +
+                                "       '" + StringEscapeUtils.escapeSql(article.getTitle()) + "'," +
+                                "       '" + StringEscapeUtils.escapeSql(article.getDescription()) + "'," +
+                                "       '" + StringEscapeUtils.escapeSql(article.getText()) + "'," +
+                                "       '" + StringEscapeUtils.escapeSql(article.getAuthor()) + "'," +
+                                "       '" + article.getImagesFileNameStr() + "'," +
+                                "       '" + article.getNewsPaper().ordinal() + "'," +
+                                "       '" + article.getMatchingArticlesIds() + "'," +
+                                "        " + article.getDate() + "," +
+                                "        " + System.currentTimeMillis() + " ");
+                    }
+                }
+
+                String sql = stringBuilder.toString();
+                SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
+                sqLiteDatabase.execSQL(sql);
+
+
+
+            }
 
         }
     }
@@ -109,26 +128,26 @@ public class NewsDb extends SQLiteOpenHelper {
         Cursor cursor = null;
         if (newsPaper == null) {
             if( includeKeywords==false ) {
-                cursor = sqLiteDatabase.query(ARTICLES_TABLE_NAME, null, "date>" + dateFrom, null, null, null, null);
+                cursor = sqLiteDatabase.query(ARTICLES_TABLE, null, "date>" + dateFrom, null, null, null, null);
             }
             else {
-                cursor = sqLiteDatabase.rawQuery("SELECT * FROM " + ARTICLES_TABLE_NAME + " " +
-                        "LEFT OUTER JOIN " + KEYWORDS_TABLE_NAME + " " +
-                        "ON " + ARTICLES_TABLE_NAME + ".id = " + KEYWORDS_TABLE_NAME + ".articleId " +
+                cursor = sqLiteDatabase.rawQuery("SELECT * FROM " + ARTICLES_TABLE + " " +
+                        "LEFT OUTER JOIN " + KEYWORDS_TABLE + " " +
+                        "ON " + ARTICLES_TABLE + ".id = " + KEYWORDS_TABLE + ".articleId " +
                         "WHERE date>" + dateFrom + " " +
-                        "ORDER BY " + ARTICLES_TABLE_NAME + ".id", null);
+                        "ORDER BY " + ARTICLES_TABLE + ".id", null);
             }
         }
         else {
             if( includeKeywords==false ) {
-                cursor = sqLiteDatabase.query(ARTICLES_TABLE_NAME, null, "date>" + dateFrom + " AND newsPaper=" + newsPaper.ordinal(), null, null, null, null);
+                cursor = sqLiteDatabase.query(ARTICLES_TABLE, null, "date>" + dateFrom + " AND newsPaper=" + newsPaper.ordinal(), null, null, null, null);
             }
             else {
-                cursor = sqLiteDatabase.rawQuery("SELECT * FROM " + ARTICLES_TABLE_NAME + " " +
-                        "LEFT OUTER JOIN " + KEYWORDS_TABLE_NAME + " " +
-                        "ON " + ARTICLES_TABLE_NAME + ".id = " + KEYWORDS_TABLE_NAME + ".articleId " +
+                cursor = sqLiteDatabase.rawQuery("SELECT * FROM " + ARTICLES_TABLE + " " +
+                        "LEFT OUTER JOIN " + KEYWORDS_TABLE + " " +
+                        "ON " + ARTICLES_TABLE + ".id = " + KEYWORDS_TABLE + ".articleId " +
                         "WHERE date>" + dateFrom + " AND newsPaper=" + newsPaper.ordinal() + " " +
-                        "ORDER BY " + ARTICLES_TABLE_NAME + ".id", null);
+                        "ORDER BY " + ARTICLES_TABLE + ".id", null);
             }
         }
         articles = new ArrayList<>();
@@ -177,9 +196,9 @@ public class NewsDb extends SQLiteOpenHelper {
             String idListStr = stringBuilder.toString();
 
             SQLiteDatabase sqLiteDatabase = this.getReadableDatabase();
-            Cursor cursor = sqLiteDatabase.rawQuery("SELECT * FROM " + ARTICLES_TABLE_NAME + " " +
+            Cursor cursor = sqLiteDatabase.rawQuery("SELECT * FROM " + ARTICLES_TABLE + " " +
                     "WHERE id IN ("+idListStr+") " +
-                    "ORDER BY " + ARTICLES_TABLE_NAME + ".id", null);
+                    "ORDER BY " + ARTICLES_TABLE + ".id", null);
             //WHERE first_name IN ('Sarah', 'Jane', 'Heather');
 
             while( cursor.moveToNext() ){
@@ -202,7 +221,7 @@ public class NewsDb extends SQLiteOpenHelper {
     public void clearArticles( Long beforeDate ){
 
         SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
-        sqLiteDatabase.execSQL("DELETE * FROM " + ARTICLES_TABLE_NAME + " WHERE date<" + beforeDate);
+        sqLiteDatabase.execSQL("DELETE * FROM " + ARTICLES_TABLE + " WHERE date<" + beforeDate);
     }
 
 
@@ -233,7 +252,7 @@ public class NewsDb extends SQLiteOpenHelper {
                 Keyword keyword = keywords.get(0);
 
                 StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.append("INSERT INTO '" + KEYWORDS_TABLE_NAME + "'");
+                stringBuilder.append("INSERT INTO '" + KEYWORDS_TABLE + "'");
                 stringBuilder.append("SELECT " +
                         "NULL                      AS id, " +
                         "'" + keyword.keywordStr + "' AS keyword, " +
@@ -274,10 +293,10 @@ public class NewsDb extends SQLiteOpenHelper {
 
         SQLiteDatabase sqLiteDatabase = getReadableDatabase();
 
-        Cursor cursor = sqLiteDatabase.rawQuery( "SELECT * FROM "+ARTICLES_TABLE_NAME+" " +
-                "LEFT OUTER JOIN "+KEYWORDS_TABLE_NAME+" " +
-                "ON "+ARTICLES_TABLE_NAME+".id = "+KEYWORDS_TABLE_NAME+".articleId " +
-                "WHERE "+KEYWORDS_TABLE_NAME+".articleId IS NULL"
+        Cursor cursor = sqLiteDatabase.rawQuery( "SELECT * FROM "+ ARTICLES_TABLE +" " +
+                "LEFT OUTER JOIN "+ KEYWORDS_TABLE +" " +
+                "ON "+ ARTICLES_TABLE +".id = "+ KEYWORDS_TABLE +".articleId " +
+                "WHERE "+ KEYWORDS_TABLE +".articleId IS NULL"
                 ,null);
 
         if( cursor!=null && cursor.getCount()>0 ) {
@@ -303,10 +322,10 @@ public class NewsDb extends SQLiteOpenHelper {
 
         SQLiteDatabase sqLiteDatabase = getReadableDatabase();
 
-        Cursor cursor = sqLiteDatabase.rawQuery( "SELECT * FROM "+ARTICLES_TABLE_NAME+" " +
-                "LEFT OUTER JOIN "+KEYWORDS_TABLE_NAME+" " +
-                "ON "+ARTICLES_TABLE_NAME+".id = "+KEYWORDS_TABLE_NAME+".articleId " +
-                "WHERE "+KEYWORDS_TABLE_NAME+".articleId IS NOT NULL"
+        Cursor cursor = sqLiteDatabase.rawQuery( "SELECT * FROM "+ ARTICLES_TABLE +" " +
+                "LEFT OUTER JOIN "+ KEYWORDS_TABLE +" " +
+                "ON "+ ARTICLES_TABLE +".id = "+ KEYWORDS_TABLE +".articleId " +
+                "WHERE "+ KEYWORDS_TABLE +".articleId IS NOT NULL"
                 ,null);
 
 
@@ -342,10 +361,10 @@ public class NewsDb extends SQLiteOpenHelper {
 
         SQLiteDatabase sqLiteDatabase = getWritableDatabase();
 
-        sqLiteDatabase.execSQL( "DELETE FROM "+KEYWORDS_TABLE_NAME+" WHERE articleId IN " +
-                "( SELECT id FROM "+ARTICLES_TABLE_NAME+" WHERE createdAt<"+olderThan+" )" );
+        sqLiteDatabase.execSQL( "DELETE FROM "+ KEYWORDS_TABLE +" WHERE articleId IN " +
+                "( SELECT id FROM "+ ARTICLES_TABLE +" WHERE createdAt<"+olderThan+" )" );
 
-        sqLiteDatabase.execSQL("DELETE FROM " + ARTICLES_TABLE_NAME + " WHERE createdAt<" + olderThan);
+        sqLiteDatabase.execSQL("DELETE FROM " + ARTICLES_TABLE + " WHERE createdAt<" + olderThan);
 
 
     }
@@ -367,11 +386,11 @@ public class NewsDb extends SQLiteOpenHelper {
         //    ('Sarah', 'Jane', 'Heather');
 
         SQLiteDatabase sqLiteDatabase = getReadableDatabase();
-        Cursor cursor = sqLiteDatabase.rawQuery("SELECT * FROM " + ARTICLES_TABLE_NAME + " " +
-                "LEFT OUTER JOIN " + KEYWORDS_TABLE_NAME + " " +
-                "ON " + ARTICLES_TABLE_NAME + ".id = " + KEYWORDS_TABLE_NAME + ".articleId " +
+        Cursor cursor = sqLiteDatabase.rawQuery("SELECT * FROM " + ARTICLES_TABLE + " " +
+                "LEFT OUTER JOIN " + KEYWORDS_TABLE + " " +
+                "ON " + ARTICLES_TABLE + ".id = " + KEYWORDS_TABLE + ".articleId " +
                 "WHERE keyword IN " + stringBuilderKeywords.toString() + " " +
-                "ORDER BY " + ARTICLES_TABLE_NAME + ".id", null);
+                "ORDER BY " + ARTICLES_TABLE + ".id", null);
 
 
         List<Article> articles = new ArrayList<>();
@@ -412,9 +431,11 @@ public class NewsDb extends SQLiteOpenHelper {
 
         List<Article> matchingArticles = new ArrayList<>();
 
-        if( article.getKeywords()!=null && article.getKeywords().size()>0 ){
+        if(     article.getKeywords()!= null &&
+                article.getKeywords().size() > 0 &&
+                !article.getKeywords().get(0).equals("null")  ){
 
-            matchingArticles = getMatchingArticles(article.getKeywords() , nbMatchingKeywords );
+            matchingArticles = getMatchingArticles( article.getKeywords() , nbMatchingKeywords );
             int a = 0;
             while( a<matchingArticles.size() ){
                 if( matchingArticles.get(a).getId() == article.getId() ){
@@ -427,11 +448,6 @@ public class NewsDb extends SQLiteOpenHelper {
 
         return matchingArticles;
     }
-
-
-
-
-
 
 
 
@@ -455,7 +471,7 @@ public class NewsDb extends SQLiteOpenHelper {
     public void updateMatchingArticles(Article article) {
 
         SQLiteDatabase sqLiteDatabase = getWritableDatabase();
-        sqLiteDatabase.execSQL("UPDATE " + ARTICLES_TABLE_NAME + " SET " +
+        sqLiteDatabase.execSQL("UPDATE " + ARTICLES_TABLE + " SET " +
                 "matchingArticlesIds = '" + article.getMatchingArticlesIds() + "' " +
                 "WHERE id = " + article.getId());
         // UPDATE COMPANY SET ADDRESS = 'Texas' WHERE ID = 6;
@@ -468,7 +484,7 @@ public class NewsDb extends SQLiteOpenHelper {
         List<Article> articles = new ArrayList<>();
 
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append( "SELECT * FROM " + ARTICLES_TABLE_NAME + " " );
+        stringBuilder.append( "SELECT * FROM " + ARTICLES_TABLE + " " );
         stringBuilder.append( "WHERE matchingArticlesIds !='null' AND " );
         stringBuilder.append( "date>"+dateFrom+" " );
         if( newsPaper!=null ) {

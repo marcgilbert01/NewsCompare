@@ -37,11 +37,7 @@ public class NewsRecorderBinder extends Binder {
                 articlesWithMatchingArticles = fillArticleWithMatchingArticles(articlesWithMatchingArticles);
                 onArticlesReadyListener.OnArticlesReady(articlesWithMatchingArticles);
 
-
-
-
 // TEST
-/*
 System.out.println( "###### nb Articles with matching articles from method =" + articlesWithMatchingArticles.size() );
 List<Article> tmpArticles = newsDb.getArticles(0L,null,false);
 List<Article> tmpArticlesWithMatch = new ArrayList<Article>();
@@ -53,7 +49,7 @@ for( Article article : tmpArticles ){
 }
 System.out.println( "###### total nb Articles ="+tmpArticles.size()  );
 System.out.println( "###### nb Articles with matching articles from loop =" + tmpArticlesWithMatch.size() );
-*/
+
 
 
             }

@@ -25,31 +25,44 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 /**
- * Created by gilbertm on 10/03/2016.
+ * Created by gilbertm on 13/04/2016.
+ *
+ <item>
+     <title>Film Reviews - Criminal, Despite The Falling Snow, Eisenstein in Guanajuato</title>
+     <link>http://www.independent.co.uk/arts-entertainment/films/reviews/film-reviews-criminal-despite-the-falling-snow-eisenstein-in-guanajuato-a6982311.html</link>
+     <description><![CDATA[HM Treasury and Chancellor George Osborne must take some of the responsibility for this misfiring and very jarring thriller. The original intention was to make it in an American city but the producers relocated the action to London to take advantage of the generous tax breaks available in the UK. The result is an American movie dressed up in British clothes that simply don&apos;t fit.]]></description>
+     <pubDate>Wed, 13 Apr 2016 12:53:19 +0000</pubDate>
+     <guid>a6982311</guid>
+     <author>Geoffrey Macnab</author>
+     <dc:creator>Geoffrey Macnab</dc:creator>
+     <dc:date>2016-04-13T12:53:19+00:00</dc:date>
+     <media:thumbnail url="http://static.independent.co.uk/s3fs-public/styles/feed/public/thumbnails/image/2016/04/13/13/criminal.jpg" type="image/jpeg"/>
+     <media:content url="http://static.independent.co.uk/s3fs-public/thumbnails/image/2016/04/13/13/criminal.jpg" type="image/jpeg"/>
+ </item>
+ *
  */
 
-public class TheGuardianArticlesLoader extends ArticlesLoader{
+public class TheIndependentArticlesLoader extends ArticlesLoader{
 
     static Map<Article.Category,String> categoriesMap = null;
     static{
         categoriesMap = new HashMap<>();
-        categoriesMap.put(Article.Category.HOME     , "http://www.theguardian.com/uk/rss" );
-        categoriesMap.put(Article.Category.POLITICS , "http://www.theguardian.com/politics/rss" );
-        categoriesMap.put(Article.Category.BUSINESS , "http://www.theguardian.com/uk/business/rss" );
-        categoriesMap.put(Article.Category.MONEY    , "" );
-        categoriesMap.put(Article.Category.CULTURE  , "http://www.theguardian.com/uk/culture/rss" );
-        categoriesMap.put(Article.Category.SCIENCE  , "https://www.theguardian.com/uk/technology/rss" );
-        categoriesMap.put(Article.Category.SPORT    , "http://www.theguardian.com/uk/sport/rss" );
+        categoriesMap.put(Article.Category.HOME     , "http://www.independent.co.uk/rss" );
+        categoriesMap.put(Article.Category.POLITICS , "http://www.independent.co.uk/news/uk/politics/rss" );
+        categoriesMap.put(Article.Category.BUSINESS , "http://www.independent.co.uk/news/business/rss" );
+        //categoriesMap.put(Article.Category.MONEY    , "" );
+        categoriesMap.put(Article.Category.CULTURE  , "http://www.independent.co.uk/arts-entertainment/rss" );
+        categoriesMap.put(Article.Category.SCIENCE  , "http://www.independent.co.uk/news/science/rss" );
+        categoriesMap.put(Article.Category.SPORT    , "http://www.independent.co.uk/sport/rss" );
 
     }
 
-
     @Override
-    public List<Article> getNewArticles(List<Article> existingArticles ) {
+    public List<Article> getNewArticles(List<Article> existingArticles) {
 
-        List<Article> newArticles = new ArrayList<Article>();
+        List<Article> newArticles = new ArrayList<>();
 
-        for(Map.Entry<Article.Category,String> entry : categoriesMap.entrySet() ) {
+        for(Map.Entry<Article.Category,String> entry : categoriesMap.entrySet() ){
 
             // READ DATA FROM RSS FEED
             String rssData = null;
@@ -59,9 +72,9 @@ public class TheGuardianArticlesLoader extends ArticlesLoader{
                 e.printStackTrace();
             }
             // PARSE DATA
-            if( rssData!=null ){
+            if (rssData != null) {
                 try {
-                    List<Article> articlesFromRss = parseNewArticles( rssData , existingArticles);
+                    List<Article> articlesFromRss = parseNewArticles(rssData, existingArticles);
                     newArticles.addAll(articlesFromRss);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -73,11 +86,13 @@ public class TheGuardianArticlesLoader extends ArticlesLoader{
                     e.printStackTrace();
                 }
             }
+
         }
 
         return newArticles;
 
     }
+
 
 
 
@@ -89,7 +104,6 @@ public class TheGuardianArticlesLoader extends ArticlesLoader{
         else{
             articles = new ArrayList<>();
         }
-
 
         List<Article> articles = new ArrayList<>();
 
@@ -120,7 +134,7 @@ public class TheGuardianArticlesLoader extends ArticlesLoader{
             if( alreadyLoaded == false ) {
 
                 Article article = new Article();
-                article.newsPaper = Article.NewsPaper.THE_GUARDIAN;
+                article.newsPaper = Article.NewsPaper.THE_INDEPENDENT;
                 // TITLE, DESCRIPTION, AUTHOR
                 article.title = elementItem.getElementsByTagName("title").item(0).getTextContent();
                 article.description = elementItem.getElementsByTagName("description").item(0).getTextContent();
@@ -157,5 +171,6 @@ public class TheGuardianArticlesLoader extends ArticlesLoader{
 
         return articles;
     }
+
 
 }

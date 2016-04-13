@@ -1,6 +1,5 @@
 package marc.newscompare.api;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
@@ -17,7 +16,10 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -28,8 +30,16 @@ import javax.xml.parsers.ParserConfigurationException;
  */
 public class TheDailyMailArticlesLoader extends ArticlesLoader{
 
-    static final String RSS_URL = "http://www.dailymail.co.uk/home/index.rss";
-
+    static Map<Article.Category,String> categoriesMap = null;
+    static{
+       categoriesMap = new HashMap<>();
+       categoriesMap.put(Article.Category.HOME, "http://www.dailymail.co.uk/home/index.rss" );
+       // categoriesMap.put(Article.Category.POLITICS , "" );
+       categoriesMap.put(Article.Category.BUSINESS , "http://www.dailymail.co.uk/money/index.rss" );
+       // categoriesMap.put(Article.Category.CULTURE  , "" );
+       categoriesMap.put(Article.Category.SCIENCE  , "http://www.dailymail.co.uk/sciencetech/index.rss" );
+       categoriesMap.put(Article.Category.SPORT    , "http://www.dailymail.co.uk/sport/index.rss" );
+    }
 
 
     @Override
@@ -37,26 +47,31 @@ public class TheDailyMailArticlesLoader extends ArticlesLoader{
 
         List<Article> newArticles = new ArrayList<>();
 
-        // READ DATA FROM RSS FEED
-        String rssData = null;
-        try {
-            rssData = getData( RSS_URL );
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        // PARSE DATA
-        if( rssData!=null ){
+        for(Map.Entry<Article.Category,String> entry : categoriesMap.entrySet() ){
+
+            // READ DATA FROM RSS FEED
+            String rssData = null;
             try {
-                newArticles = parseNewArticles( rssData , existingArticles);
+                rssData = getData( entry.getValue() );
             } catch (IOException e) {
                 e.printStackTrace();
-            } catch (SAXException e) {
-                e.printStackTrace();
-            } catch (ParseException e) {
-                e.printStackTrace();
-            } catch (ParserConfigurationException e) {
-                e.printStackTrace();
             }
+            // PARSE DATA
+            if (rssData != null) {
+                try {
+                    List<Article> articlesFromRss = parseNewArticles(rssData, existingArticles);
+                    newArticles.addAll(articlesFromRss);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (SAXException e) {
+                    e.printStackTrace();
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                } catch (ParserConfigurationException e) {
+                    e.printStackTrace();
+                }
+            }
+
         }
 
         return newArticles;

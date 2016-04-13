@@ -116,20 +116,20 @@ public class ArticleFragment extends Fragment {
             ViewGroup layout = (ViewGroup) LayoutInflater.from( container.getContext() ).inflate(R.layout.article_large , container, false);
             // TITLE
             TextView textViewTitle = (TextView) layout.findViewById(R.id.textViewLargeArticleTitle);
-            textViewTitle.setText( article.getTitle() );
+            textViewTitle.setText( articleToDisplay.getTitle() );
             // PHOTO
             String fileName =null;
-            if( (fileName = article.getImagesFilesNames()[0]) != null ){
+            if( (fileName = articleToDisplay.getImagesFilesNames()[0]) != null ){
                 ImageView imageViewOne = (ImageView) layout.findViewById(R.id.imageViewOneLargeArticle);
                 imageViewOne.setImageURI( Uri.fromFile(new File( fileName )) );
             }
             // DESCRIPTION
             TextView textViewDescription = (TextView) layout.findViewById(R.id.textViewLargeArticleDescription);
-            textViewDescription.setText( Html.fromHtml(article.getDescription()) );
+            textViewDescription.setText( Html.fromHtml(articleToDisplay.getDescription()) );
             // KEYWORDS
-            if( article.getKeywords()!=null ) {
+            if( articleToDisplay.getKeywords()!=null ) {
                 StringBuilder stringBuilder = new StringBuilder();
-                for (String string : article.getKeywords()) {
+                for (String string : articleToDisplay.getKeywords()) {
                    stringBuilder.append(string+",");
                 }
                 TextView textViewKeywords = (TextView) layout.findViewById(R.id.textViewLargeArticlesKeywords);

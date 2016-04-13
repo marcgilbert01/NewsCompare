@@ -66,12 +66,11 @@ public abstract class ArticlesLoader {
 
     abstract public List<Article> getNewArticles(List<Article> existingArticles);
 
-
-
     static public String saveImage( Bitmap bitmap ) {
 
-        String fileName = null;
 
+        String fileName = null;
+/*
         if( bitmap!=null  && imageDirectory!=null ){
 
             try {
@@ -100,7 +99,7 @@ public abstract class ArticlesLoader {
                 e.printStackTrace();
             }
         }
-
+*/
         return fileName;
     }
 
@@ -126,5 +125,11 @@ public abstract class ArticlesLoader {
     public static void setImageDirectory(File imageDirectory) {
         ArticlesLoader.imageDirectory = imageDirectory;
     }
+
+
+
+
+
+
 }
 

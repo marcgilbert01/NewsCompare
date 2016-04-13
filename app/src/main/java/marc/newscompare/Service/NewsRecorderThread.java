@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import marc.newscompare.R;
 import marc.newscompare.api.Article;
 import marc.newscompare.api.ArticlesLoader;
 import marc.newscompare.dao.NewsDb;
@@ -77,17 +76,17 @@ public class NewsRecorderThread extends Thread{
                 YahooContentAnalysisApi yahooContentAnalysis = new YahooContentAnalysisApi();
                 for (Article article : articlesWithNoKeywords) {
                     // GET KEYWORDS FROM YAHOO API
-                    String[] keywords = yahooContentAnalysis.getKeywords(article.getDescription());
-                    // IF NO KEYWORDS CREATE EMPTY ONE
-                    if (keywords == null) {
-                        keywords = new String[]{""};
+                    String[] keywords = yahooContentAnalysis.getKeywords( article.getDescription() );
+                    if( keywords==null ){
+                        keywords = new String[]{null};
                     }
-                    List<String> keywordList = new ArrayList<String>(Arrays.asList(keywords));
+                    List<String> keywordList = new ArrayList<>(Arrays.asList(keywords));
                     article.setKeywords(keywordList);
-                    // SAVE KEYWORDS ( NOT WORKING WHEN TOO MANY SELECT )
+                    // SAVE KEYWORDS
                     List<Article> articlesWithKeywords = new ArrayList<>();
                     articlesWithKeywords.add(article);
                     newsDb.saveKeywords(articlesWithKeywords);
+
                 }
             }
 
@@ -97,21 +96,36 @@ public class NewsRecorderThread extends Thread{
                 newsRecorderThreadListener.onStatusChange( status );
                 System.out.println("###### NewsRecorderThread  status " + this.status+ " "+new Date());
             }
-            List<Article> allArticles = newsDb.getArticles(0L,null,true);
+            List<Article> allArticles = newsDb.getArticles( 0L , null , true );
             for(Article article : allArticles  ){
 
-                List<Article> matchingArticles = newsDb.getMatchingArticles(article,2);
-                // IF MATCHING ARTICLES FOUND SAVE
-                if( matchingArticles!=null && matchingArticles.size()>0 ) {
+                if( article.getKeywords()!=null &&
+                    article.getKeywords().size()>0 &&
+                    !article.getKeywords().get(0).equals("null")
+                    ) {
 
-                    StringBuilder stringBuilder = new StringBuilder();
-                    for ( int a=0 ; a<matchingArticles.size()-1 ; a++ ) {
-                        stringBuilder.append( matchingArticles.get(a).getId()+"," );
+                    // List<Article> matchingArticles = newsDb.getMatchingArticles( article , 2 );
+                    List<Article> matchingArticles = new ArrayList<>();
+                    for (Article articleToCheck : allArticles) {
+                        if (  articleToCheck != article &&
+                              articleToCheck.getKeywords() != null &&
+                              articleToCheck.getKeywords().size() > 0 &&
+                              articleToCheck.getKeywords().get(0).equals(article.getKeywords().get(0))) {
+                            // MATCH
+                            matchingArticles.add(articleToCheck);
+                        }
                     }
-                    stringBuilder.append( matchingArticles.get(matchingArticles.size()-1).getId() );
-                    article.setMatchingArticlesIds(stringBuilder.toString());
-                    // SAVE TO DB
-                    newsDb.updateMatchingArticles(article);
+                    // IF MATCHING ARTICLES FOUND SAVE
+                    if (matchingArticles != null && matchingArticles.size() > 0) {
+                        StringBuilder stringBuilder = new StringBuilder();
+                        for (int a = 0; a < matchingArticles.size() - 1; a++) {
+                            stringBuilder.append(matchingArticles.get(a).getId() + ",");
+                        }
+                        stringBuilder.append(matchingArticles.get(matchingArticles.size() - 1).getId());
+                        article.setMatchingArticlesIds(stringBuilder.toString());
+                        // SAVE TO DB
+                        newsDb.updateMatchingArticles(article);
+                    }
                 }
             }
 
@@ -128,8 +142,8 @@ public class NewsRecorderThread extends Thread{
                 System.out.println("###### NewsRecorderThread  status " + this.status + " "+new Date());
             }
             try {
-                sleep( 3600*1000 );
-                //sleep( 10000 );
+                //sleep( 3600000 );
+                sleep( 30000 );
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

@@ -11,7 +11,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import marc.newscompare.R;
+
 import marc.newscompare.dao.NewsDb;
 
 /**
@@ -31,12 +31,14 @@ public class Article implements Serializable{
     NewsPaper newsPaper;
     String matchingArticlesIds = null;
     List<Article> matchingArticles = new ArrayList<>();
-
+    Category category;
 
     public enum NewsPaper{
 
-        THE_GUARDIAN( new TheGuardianArticlesLoader() ),
-        THE_DAILY_MAIL( new TheDailyMailArticlesLoader() );
+        THE_GUARDIAN(    new TheGuardianArticlesLoader() ),
+        THE_DAILY_MAIL(  new TheDailyMailArticlesLoader() ),
+        THE_INDEPENDENT( new TheIndependentArticlesLoader() )
+        ;
 
         ArticlesLoader articlesLoader;
 
@@ -51,6 +53,20 @@ public class Article implements Serializable{
         //public getNewsPaperFrom
 
     }
+
+    public enum Category{
+
+        HOME,
+        POLITICS,
+        BUSINESS,
+        MONEY,
+        CULTURE,
+        SCIENCE,
+        SPORT;
+    }
+
+
+
 
     public int getId() {
         return id;

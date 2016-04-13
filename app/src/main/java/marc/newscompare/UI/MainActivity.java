@@ -57,6 +57,7 @@ public class MainActivity extends AppCompatActivity implements NewsRecorderBinde
         Intent intent = new Intent(this, NewsRecorderService.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startService(intent);
+
     }
 
 
@@ -64,16 +65,20 @@ public class MainActivity extends AppCompatActivity implements NewsRecorderBinde
     @Override
     protected void onStart() {
         super.onStart();
-
         // CONNECT TO SERVICE TO GET ARTICLES
         Intent intent = new Intent(this, NewsRecorderService.class);
         bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+        unbindService(serviceConnection);
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
-        unbindService(serviceConnection);
     }
 
     @Override
@@ -136,7 +141,7 @@ public class MainActivity extends AppCompatActivity implements NewsRecorderBinde
         handler.post(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText( MainActivity.this, status.toString(), Toast.LENGTH_LONG).show();
+               Toast.makeText( MainActivity.this, status.toString(), Toast.LENGTH_LONG).show();
             }
         });
 
