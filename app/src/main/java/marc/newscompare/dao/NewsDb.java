@@ -79,7 +79,7 @@ public class NewsDb extends SQLiteOpenHelper {
                 StringBuilder stringBuilder = new StringBuilder();
                 stringBuilder.append("INSERT INTO '" + ARTICLES_TABLE + "'");
                 for (int a = 0; a < articlesToSave.size(); a++) {
-                    Article article = articles.get(a);
+                    Article article = articlesToSave.get(a);
                     // SAVE TO DB
                     if (a == 0) {
                         stringBuilder.append("SELECT " +

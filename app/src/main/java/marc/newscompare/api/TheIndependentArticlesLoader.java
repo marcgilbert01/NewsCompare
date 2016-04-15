@@ -75,6 +75,7 @@ public class TheIndependentArticlesLoader extends ArticlesLoader{
             if (rssData != null) {
                 try {
                     List<Article> articlesFromRss = parseNewArticles(rssData, existingArticles);
+                    existingArticles.addAll(articlesFromRss);
                     newArticles.addAll(articlesFromRss);
                 } catch (IOException e) {
                     e.printStackTrace();

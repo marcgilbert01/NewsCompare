@@ -211,6 +211,11 @@ public class Article implements Serializable{
         return ids;
     }
 
+    public Category getCategory() {
+        return category;
+    }
 
-
+    public void setCategory(Category category) {
+        this.category = category;
+    }
 }

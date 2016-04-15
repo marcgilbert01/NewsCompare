@@ -36,7 +36,7 @@ public class TheGuardianArticlesLoader extends ArticlesLoader{
         categoriesMap.put(Article.Category.HOME     , "http://www.theguardian.com/uk/rss" );
         categoriesMap.put(Article.Category.POLITICS , "http://www.theguardian.com/politics/rss" );
         categoriesMap.put(Article.Category.BUSINESS , "http://www.theguardian.com/uk/business/rss" );
-        categoriesMap.put(Article.Category.MONEY    , "" );
+        //categoriesMap.put(Article.Category.MONEY    , "" );
         categoriesMap.put(Article.Category.CULTURE  , "http://www.theguardian.com/uk/culture/rss" );
         categoriesMap.put(Article.Category.SCIENCE  , "https://www.theguardian.com/uk/technology/rss" );
         categoriesMap.put(Article.Category.SPORT    , "http://www.theguardian.com/uk/sport/rss" );
@@ -62,6 +62,7 @@ public class TheGuardianArticlesLoader extends ArticlesLoader{
             if( rssData!=null ){
                 try {
                     List<Article> articlesFromRss = parseNewArticles( rssData , existingArticles);
+                    existingArticles.addAll(articlesFromRss);
                     newArticles.addAll(articlesFromRss);
                 } catch (IOException e) {
                     e.printStackTrace();

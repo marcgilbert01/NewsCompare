@@ -86,10 +86,8 @@ public class NewsRecorderThread extends Thread{
                     List<Article> articlesWithKeywords = new ArrayList<>();
                     articlesWithKeywords.add(article);
                     newsDb.saveKeywords(articlesWithKeywords);
-
                 }
             }
-
             // COMPARE ALL ARTICLES AND SAVE MATCHING ARTICLES
             if( newsRecorderThreadListener!=null ){
                 status = Status.COMPARING_ARTICLES;
@@ -142,8 +140,8 @@ public class NewsRecorderThread extends Thread{
                 System.out.println("###### NewsRecorderThread  status " + this.status + " "+new Date());
             }
             try {
-                //sleep( 3600000 );
-                sleep( 30000 );
+                sleep( 3600000 );
+                //sleep( 30000 );
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

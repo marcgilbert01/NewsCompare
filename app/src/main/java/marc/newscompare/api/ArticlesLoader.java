@@ -68,9 +68,8 @@ public abstract class ArticlesLoader {
 
     static public String saveImage( Bitmap bitmap ) {
 
-
         String fileName = null;
-/*
+
         if( bitmap!=null  && imageDirectory!=null ){
 
             try {
@@ -99,7 +98,7 @@ public abstract class ArticlesLoader {
                 e.printStackTrace();
             }
         }
-*/
+
         return fileName;
     }
 

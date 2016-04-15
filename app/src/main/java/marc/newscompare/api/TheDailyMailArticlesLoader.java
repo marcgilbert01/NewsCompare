@@ -60,6 +60,12 @@ public class TheDailyMailArticlesLoader extends ArticlesLoader{
             if (rssData != null) {
                 try {
                     List<Article> articlesFromRss = parseNewArticles(rssData, existingArticles);
+                    // SET CATEGORY
+                    for( Article article : articlesFromRss ){
+                       article.setCategory(entry.getKey());
+                    }
+                    // ADD TO LIST
+                    existingArticles.addAll(articlesFromRss);
                     newArticles.addAll(articlesFromRss);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -146,12 +152,20 @@ public class TheDailyMailArticlesLoader extends ArticlesLoader{
                     String[] imagesUrls = new String[nodeListMediaContent.getLength()];
                     String[] imagesFileNames = new String[nodeListMediaContent.getLength()];
                     for (int b = 0; b < imagesUrls.length; b++) {
+
                         Element elementMediaContent = (Element) nodeListMediaContent.item(b);
                         imagesUrls[b] = elementMediaContent.getAttribute("url");
                         URL url = new URL(imagesUrls[b]);
+
                         Bitmap bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream());
-                        imagesFileNames[b] = saveImage(bitmap);
+                        int destWidth  = 200;
+                        double ratio = ((double)destWidth/(double)bitmap.getWidth());
+                        int destHeight = (int) ((double)bitmap.getHeight() * ratio);
+                        Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap,destWidth,destHeight, false);
+
+                        imagesFileNames[b] = saveImage(scaledBitmap);
                         bitmap = null;
+                        scaledBitmap = null;
                     }
                     article.setImagesFilesNames(imagesFileNames);
                     // ADD TO LIST
