@@ -14,6 +14,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -48,7 +49,7 @@ public class ArticlesLoaderTest extends AndroidTestCase{
         String[] imagesNames = new String[dummyBitmaps.length];
 
         for(int b=0 ; b<dummyBitmaps.length ; b++  ){
-            imagesNames[b] = ArticlesLoader.saveImage(dummyBitmaps[b]);
+            imagesNames[b] = ArticlesLoader.saveImage( dummyBitmaps[b] , false);
         }
 
 
@@ -106,6 +107,37 @@ public class ArticlesLoaderTest extends AndroidTestCase{
         }
 
         return new Bitmap[]{ bitmap1, bitmap2, bitmap3, bitmap4 };
+
+    }
+
+
+
+    public void testFindArticleByTitle(){
+
+        // PREPARE DUMMY ARTICLES
+        List<Article> articles = new ArrayList<Article>();
+        int nbArticlesToAdd = 5;
+        Long now = System.currentTimeMillis();
+        for (int a = 0; a < nbArticlesToAdd; a++) {
+            Article article = new Article();
+            article.setTitle(" tilte " + a);
+            article.setDescription("description'quote" + a);
+            article.setText("text " + a);
+            article.setAuthor("author " + a);
+            article.setImagesFileNameStr("file" + a + ".jpg,file2_" + a + ".jpg");
+            article.setNewsPaper(Article.NewsPaper.THE_GUARDIAN);
+            article.setMatchingArticlesIds("51 " + a + ",52 " + a + ",53 " + a);
+            article.setDate(now);
+            //article.setBitmaps( ArticleTest.createDummyBitmaps() );
+            //article.setKeywords(new String[]{"first keyword", "second keyword", "third keyword"});
+            articles.add(article);
+        }
+
+
+        int position = ArticlesLoader.findArticleByTitle( articles , "title 3" );
+
+        assertEquals( 2 , position );
+
 
     }
 

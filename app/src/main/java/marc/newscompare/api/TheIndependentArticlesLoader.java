@@ -77,8 +77,6 @@ public class TheIndependentArticlesLoader extends ArticlesLoader{
                     List<Article> articlesFromRss = parseNewArticles(rssData, existingArticles);
                     existingArticles.addAll(articlesFromRss);
                     newArticles.addAll(articlesFromRss);
-                } catch (IOException e) {
-                    e.printStackTrace();
                 } catch (SAXException e) {
                     e.printStackTrace();
                 } catch (ParseException e) {
@@ -97,7 +95,7 @@ public class TheIndependentArticlesLoader extends ArticlesLoader{
 
 
 
-    public List<Article> parseNewArticles(String xml , List<Article> existingArticles ) throws ParserConfigurationException, IOException, SAXException, ParseException {
+    public List<Article> parseNewArticles(String xml , List<Article> existingArticles ) throws ParserConfigurationException, SAXException, ParseException {
 
         if( existingArticles!=null ){
             articles = existingArticles;
@@ -111,62 +109,73 @@ public class TheIndependentArticlesLoader extends ArticlesLoader{
         //
         DocumentBuilder documentBuilder = null;
         documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-        Document document = documentBuilder.parse(new InputSource( new StringReader(xml)));
-        NodeList nodeListItems = document.getElementsByTagName("item");
-        SimpleDateFormat simpleDateFormat   = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Document document = null;
+        try {
+           document = documentBuilder.parse(new InputSource(new StringReader(xml)));
+        }catch (IOException ioe){
+            ioe.printStackTrace();
+        }
+        if( document!=null ) {
 
-        for( int i=0 ; i<nodeListItems.getLength() ; i++ ){
+            NodeList nodeListItems = document.getElementsByTagName("item");
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            for (int i = 0; i < nodeListItems.getLength(); i++) {
 
-            Element elementItem = (Element) nodeListItems.item(i);
-
-            // CHECK IF ARTICLE IS ALREADY LOADED
-            Boolean alreadyLoaded = false;
-            if( existingArticles!=null ) {
-                String articleTitle = elementItem.getElementsByTagName("title").item(0).getTextContent();
-                int a = 0;
-                while (alreadyLoaded == false && a < existingArticles.size()) {
-                    if (existingArticles.get(a).title.equals(articleTitle)) {
-                        alreadyLoaded = true;
+                Element elementItem = (Element) nodeListItems.item(i);
+                // CHECK IF ARTICLE IS ALREADY LOADED
+                Boolean alreadyLoaded = false;
+                if (existingArticles != null) {
+                    String articleTitle = elementItem.getElementsByTagName("title").item(0).getTextContent();
+                    int a = 0;
+                    while (alreadyLoaded == false && a < existingArticles.size()) {
+                        if (existingArticles.get(a).title.equals(articleTitle)) {
+                            alreadyLoaded = true;
+                        }
+                        a++;
                     }
-                    a++;
                 }
-            }
-            // LOAD INFO
-            if( alreadyLoaded == false ) {
+                // LOAD INFO
+                if (alreadyLoaded == false) {
 
-                Article article = new Article();
-                article.newsPaper = Article.NewsPaper.THE_INDEPENDENT;
-                // TITLE, DESCRIPTION, AUTHOR
-                article.title = elementItem.getElementsByTagName("title").item(0).getTextContent();
-                article.description = elementItem.getElementsByTagName("description").item(0).getTextContent();
-                article.author = elementItem.getElementsByTagName("dc:creator").item(0).getTextContent();
-                // DATE
-                String dateStr = elementItem.getElementsByTagName("dc:date").item(0).getTextContent();
-                dateStr = dateStr.replaceAll("T", " ").replaceAll("Z", "");
-                Date date = simpleDateFormat.parse(dateStr);
-                article.date = date.getTime();
-                // CATEGORIES
-                //NodeList nodeListCategories = elementItem.getElementsByTagName("category");
-                //article.categories = new String[nodeListCategories.getLength()];
-                //for (int c = 0; c < article.categories.length; c++) {
-                //    article.categories[c] = nodeListCategories.item(c).getTextContent();
-                //}
-                // IMAGES
-                NodeList nodeListMediaContent = elementItem.getElementsByTagName("media:content");
-                String[] imagesUrls      = new String[nodeListMediaContent.getLength()];
-                String[] imagesFileNames = new String[nodeListMediaContent.getLength()];
-                for (int b = 0; b <imagesUrls.length ; b++) {
+                    try{
 
-                    Element elementMediaContent = (Element) nodeListMediaContent.item(b);
-                    imagesUrls[b] = elementMediaContent.getAttribute("url");
-                    URL url = new URL( imagesUrls[b] );
-                    Bitmap bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream());
-                    imagesFileNames[b] = saveImage(bitmap);
-                    bitmap = null;
+                            Article article = new Article();
+                            article.newsPaper = Article.NewsPaper.THE_INDEPENDENT;
+                            // TITLE, DESCRIPTION, AUTHOR
+                            article.title = elementItem.getElementsByTagName("title").item(0).getTextContent();
+                            article.description = elementItem.getElementsByTagName("description").item(0).getTextContent();
+                            article.author = elementItem.getElementsByTagName("dc:creator").item(0).getTextContent();
+                            // DATE
+                            String dateStr = elementItem.getElementsByTagName("dc:date").item(0).getTextContent();
+                            dateStr = dateStr.replaceAll("T", " ").replaceAll("Z", "");
+                            Date date = simpleDateFormat.parse(dateStr);
+                            article.date = date.getTime();
+                            // IMAGES
+                            NodeList nodeListMediaContent = elementItem.getElementsByTagName("media:content");
+                            String[] imagesUrls = new String[nodeListMediaContent.getLength()];
+                            String[] imagesFileNames = new String[nodeListMediaContent.getLength()];
+                            for (int b = 0; b < imagesUrls.length; b++) {
+                                Element elementMediaContent = (Element) nodeListMediaContent.item(b);
+                                imagesUrls[b] = elementMediaContent.getAttribute("url");
+                                URL url = new URL(imagesUrls[b]);
+                                Bitmap bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream());
+                                imagesFileNames[b] = saveImage(bitmap, false);
+                                if (b == 0) {
+                                    article.setThumbnailFileName(saveImage(bitmap, true));
+                                }
+                                bitmap = null;
+                            }
+                            article.setImagesFilesNames(imagesFileNames);
+                            // ADD TO LIST
+                            articles.add(article);
+
+
+                    } catch (IOException ioe) {
+                        ioe.printStackTrace();
+                    }
+
                 }
-                article.setImagesFilesNames(imagesFileNames);
-                // ADD TO LIST
-                articles.add(article);
+
             }
         }
 

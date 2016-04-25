@@ -58,7 +58,7 @@ public class ArticlesOpenRightViewAdapter extends OpenRightView.OpenRightAdapter
                 Html.fromHtml(article.getDescription()));
         // PHOTO 1
         String fileName =null;
-        if( (fileName = article.getImagesFilesNames()[0]) != null ){
+        if( (fileName = article.getThumbnailFileName() ) != null ){
             articleViewHolder.imageViewArticlePhoto.setImageURI( Uri.fromFile(new File(fileName)) );
         }
         // LOGO 1

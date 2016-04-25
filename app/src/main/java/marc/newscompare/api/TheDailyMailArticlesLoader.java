@@ -11,6 +11,7 @@ import org.xml.sax.SAXException;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -30,7 +31,6 @@ import javax.xml.parsers.ParserConfigurationException;
  */
 public class TheDailyMailArticlesLoader extends ArticlesLoader{
 
-    static Map<Article.Category,String> categoriesMap = null;
     static{
        categoriesMap = new HashMap<>();
        categoriesMap.put(Article.Category.HOME, "http://www.dailymail.co.uk/home/index.rss" );
@@ -40,13 +40,17 @@ public class TheDailyMailArticlesLoader extends ArticlesLoader{
        categoriesMap.put(Article.Category.SCIENCE  , "http://www.dailymail.co.uk/sciencetech/index.rss" );
        categoriesMap.put(Article.Category.SPORT    , "http://www.dailymail.co.uk/sport/index.rss" );
     }
+    SimpleDateFormat simpleDateFormat   = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z");
 
 
+
+/*
     @Override
     public List<Article> getNewArticles(List<Article> existingArticles) {
 
         List<Article> newArticles = new ArrayList<>();
 
+        // FOR EACH CATEGORY
         for(Map.Entry<Article.Category,String> entry : categoriesMap.entrySet() ){
 
             // READ DATA FROM RSS FEED
@@ -67,8 +71,6 @@ public class TheDailyMailArticlesLoader extends ArticlesLoader{
                     // ADD TO LIST
                     existingArticles.addAll(articlesFromRss);
                     newArticles.addAll(articlesFromRss);
-                } catch (IOException e) {
-                    e.printStackTrace();
                 } catch (SAXException e) {
                     e.printStackTrace();
                 } catch (ParseException e) {
@@ -83,12 +85,12 @@ public class TheDailyMailArticlesLoader extends ArticlesLoader{
         return newArticles;
 
     }
+*/
 
 
 
-
-
-    public List<Article> parseNewArticles(String xml , List<Article> existingArticles ) throws ParserConfigurationException, IOException, SAXException, ParseException {
+/*
+    public List<Article> parseNewArticles(String xml , List<Article> existingArticles ) throws ParserConfigurationException, SAXException, ParseException {
 
         if( existingArticles!=null ){
             articles = existingArticles;
@@ -102,85 +104,86 @@ public class TheDailyMailArticlesLoader extends ArticlesLoader{
         // PARSE XML
         DocumentBuilder documentBuilder = null;
         documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-        Document document = documentBuilder.parse(new InputSource(new StringReader(xml)));
+        Document document = null;
+        try {
+            document = documentBuilder.parse(new InputSource(new StringReader(xml)));
+        }catch (IOException ioe){
+            ioe.printStackTrace();
+        }
 
-        // GO THROUGH ELEMENTS
-        NodeList nodeListItems = document.getElementsByTagName("item");
-        SimpleDateFormat simpleDateFormat   = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z");
-//                                                                 "Wed, 16 Mar 2016 13:19:34 +0000"
+        if( document!=null ){
+
+            // GO THROUGH ELEMENTS
+            NodeList nodeListItems = document.getElementsByTagName("item");
 
 
-        for( int i=0 ; i<nodeListItems.getLength() ; i++ ){
-
-            Element elementItem = (Element) nodeListItems.item(i);
-
-            // CHECK IF ARTICLE IS ALREADY LOADED
-            Boolean alreadyLoaded = false;
-            if( existingArticles!=null ) {
-                String articleTitle = elementItem.getElementsByTagName("title").item(0).getTextContent();
-                int a = 0;
-                while (alreadyLoaded == false && a < existingArticles.size()) {
-                    if (existingArticles.get(a).title.equals(articleTitle)) {
-                        alreadyLoaded = true;
+            for( int i=0 ; i<nodeListItems.getLength() ; i++ ) {
+                Element elementItem = (Element) nodeListItems.item(i);
+                // CHECK IF ARTICLE IS ALREADY LOADED
+                Boolean alreadyLoaded = false;
+                if (existingArticles != null) {
+                    String articleTitle = elementItem.getElementsByTagName("title").item(0).getTextContent();
+                    int a = 0;
+                    while (alreadyLoaded == false && a < existingArticles.size()) {
+                        if (existingArticles.get(a).title.equals(articleTitle)) {
+                            alreadyLoaded = true;
+                        }
+                        a++;
                     }
-                    a++;
+                }
+
+                // CREATE ARTICLE
+                if (alreadyLoaded == false) {
+
+                    try {
+                        Article article = createArticle(elementItem);
+                        articles.add(article);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
 
-            // LOAD INFO
-            if( alreadyLoaded == false ) {
-
-                try {
-                    Article article = new Article();
-                    article.newsPaper = Article.NewsPaper.THE_DAILY_MAIL;
-                    // TITLE, DESCRIPTION, AUTHOR
-                    article.title = elementItem.getElementsByTagName("title").item(0).getTextContent();
-                    article.description = elementItem.getElementsByTagName("description").item(0).getTextContent();
-                    article.author = elementItem.getElementsByTagName("media:credit").item(0).getTextContent();
-                    // DATE
-                    String dateStr = elementItem.getElementsByTagName("pubDate").item(0).getTextContent();
-                    Date date = simpleDateFormat.parse(dateStr);
-                    article.date = date.getTime();
-                    // CATEGORIES
-                    //NodeList nodeListCategories = elementItem.getElementsByTagName("category");
-                    //article.categories = new String[nodeListCategories.getLength()];
-                    //for (int c = 0; c < article.categories.length; c++) {
-                    //    article.categories[c] = nodeListCategories.item(c).getTextContent();
-                    //}
-                    // IMAGES
-                    NodeList nodeListMediaContent = elementItem.getElementsByTagName("media:content");
-                    String[] imagesUrls = new String[nodeListMediaContent.getLength()];
-                    String[] imagesFileNames = new String[nodeListMediaContent.getLength()];
-                    for (int b = 0; b < imagesUrls.length; b++) {
-
-                        Element elementMediaContent = (Element) nodeListMediaContent.item(b);
-                        imagesUrls[b] = elementMediaContent.getAttribute("url");
-                        URL url = new URL(imagesUrls[b]);
-
-                        Bitmap bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream());
-                        int destWidth  = 200;
-                        double ratio = ((double)destWidth/(double)bitmap.getWidth());
-                        int destHeight = (int) ((double)bitmap.getHeight() * ratio);
-                        Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap,destWidth,destHeight, false);
-
-                        imagesFileNames[b] = saveImage(scaledBitmap);
-                        bitmap = null;
-                        scaledBitmap = null;
-                    }
-                    article.setImagesFilesNames(imagesFileNames);
-                    // ADD TO LIST
-                    articles.add(article);
-
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-            }
         }
 
         return articles;
     }
+*/
 
 
+
+    private Article createArticle(Element elementItem) throws ParseException, IOException {
+
+        Article article = new Article();
+        article.newsPaper = Article.NewsPaper.THE_DAILY_MAIL;
+        // TITLE, DESCRIPTION, AUTHOR
+        article.title = elementItem.getElementsByTagName("title").item(0).getTextContent();
+        article.description = elementItem.getElementsByTagName("description").item(0).getTextContent();
+        article.author = elementItem.getElementsByTagName("media:credit").item(0).getTextContent();
+        // DATE
+        String dateStr = elementItem.getElementsByTagName("pubDate").item(0).getTextContent();
+        Date date = simpleDateFormat.parse(dateStr);
+        article.date = date.getTime();
+        // IMAGES
+        NodeList nodeListMediaContent = elementItem.getElementsByTagName("media:content");
+        String[] imagesUrls = new String[nodeListMediaContent.getLength()];
+        String[] imagesFileNames = new String[nodeListMediaContent.getLength()];
+        for (int b = 0; b < imagesUrls.length; b++) {
+            Element elementMediaContent = (Element) nodeListMediaContent.item(b);
+            imagesUrls[b] = elementMediaContent.getAttribute("url");
+            URL url = new URL(imagesUrls[b]);
+            Bitmap bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream());
+            imagesFileNames[b] = saveImage(bitmap, false);
+            if (b == 0) {
+                article.setThumbnailFileName(saveImage(bitmap, true));
+            }
+            bitmap = null;
+        }
+        article.setImagesFilesNames(imagesFileNames);
+
+        return article;
+
+    }
 
 
 

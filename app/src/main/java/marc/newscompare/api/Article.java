@@ -24,6 +24,8 @@ public class Article implements Serializable{
     String description;
     String text;
     String author;
+    String thumbnailFileName;
+    String thumbnailUrlStr;
     String imagesFileNameStr;
     String imagesUrlStr;
     List<String> keywords = new ArrayList<>();
@@ -217,5 +219,21 @@ public class Article implements Serializable{
 
     public void setCategory(Category category) {
         this.category = category;
+    }
+
+    public String getThumbnailFileName() {
+        return thumbnailFileName;
+    }
+
+    public void setThumbnailFileName(String thumbnailFileName) {
+        this.thumbnailFileName = thumbnailFileName;
+    }
+
+    public String getThumbnailUrlStr() {
+        return thumbnailUrlStr;
+    }
+
+    public void setThumbnailUrlStr(String thumbnailUrlStr) {
+        this.thumbnailUrlStr = thumbnailUrlStr;
     }
 }

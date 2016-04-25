@@ -119,8 +119,6 @@ public class NewsDbTest extends InstrumentationTestCase {
             articles = theGuardianArticlesLoader.parseNewArticles(xml, null);
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         } catch (SAXException e) {
             e.printStackTrace();
         } catch (ParseException e) {
@@ -541,8 +539,6 @@ public class NewsDbTest extends InstrumentationTestCase {
             theGuardianArticles = theGuardianArticlesLoader.parseNewArticles(xml, null);
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         } catch (SAXException e) {
             e.printStackTrace();
         } catch (ParseException e) {
@@ -580,8 +576,6 @@ public class NewsDbTest extends InstrumentationTestCase {
         try {
             theDailyMailArticles = theDailyMailArticlesLoader.parseNewArticles(xml,null);
         } catch (ParserConfigurationException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
             e.printStackTrace();
         } catch (SAXException e) {
             e.printStackTrace();
