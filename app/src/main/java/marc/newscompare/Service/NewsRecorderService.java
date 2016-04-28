@@ -39,13 +39,10 @@ public class NewsRecorderService extends Service {
     public void onCreate() {
         super.onCreate();
 
-        newsDbForThread = new NewsDb( getApplicationContext() , new File( getApplicationContext().getCacheDir()+NewsRecorderService.DB_SUB_DIR ) );
-        //newsDbForThread = new NewsDb( getApplicationContext() , new File( Environment.getExternalStorageDirectory()+NewsRecorderService.DB_SUB_DIR ) );
-
-        newsDbForBinder = new NewsDb( getApplicationContext() , new File( getApplicationContext().getCacheDir()+NewsRecorderService.DB_SUB_DIR ) );
-        //newsDbForBinder = new NewsDb( getApplicationContext() , new File( Environment.getExternalStorageDirectory()+NewsRecorderService.DB_SUB_DIR ) );
-
-        ArticlesLoader.setImageDirectory( new File(getApplicationContext().getCacheDir() + NewsRecorderService.IMG_ARTICLES_SUB_DIR));
+        //newsDbForThread = new NewsDb( getApplicationContext() , new File( getApplicationContext().getCacheDir()+NewsRecorderService.DB_SUB_DIR ) );
+        newsDbForThread = new NewsDb( getApplicationContext() , new File( Environment.getExternalStorageDirectory()+NewsRecorderService.DB_SUB_DIR ) );
+        //newsDbForBinder = new NewsDb( getApplicationContext() , new File( getApplicationContext().getCacheDir()+NewsRecorderService.DB_SUB_DIR ) );
+        newsDbForBinder = new NewsDb( getApplicationContext() , new File( Environment.getExternalStorageDirectory()+NewsRecorderService.DB_SUB_DIR ) );
 
     }
 
@@ -54,7 +51,10 @@ public class NewsRecorderService extends Service {
 
         if( newsRecorderThread==null || newsRecorderThread.getState()== Thread.State.TERMINATED ){
 
-            NewsRecorderThread newsRecorderThread = new NewsRecorderThread( getApplicationContext() , newsDbForThread );
+            NewsRecorderThread newsRecorderThread = new NewsRecorderThread( getApplicationContext() ,
+                    newsDbForThread ,
+                    new File(getApplicationContext().getCacheDir() + NewsRecorderService.IMG_ARTICLES_SUB_DIR)
+            );
             newsRecorderThread.setPriority(Thread.MIN_PRIORITY);
             newsRecorderThread.start();
             newsRecorderBinder = new NewsRecorderBinder( getApplicationContext() , newsDbForBinder , newsRecorderThread );

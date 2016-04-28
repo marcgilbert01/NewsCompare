@@ -61,6 +61,9 @@ public class NewsDb extends SQLiteOpenHelper {
 
         if (articles != null && articles.size() > 0) {
 
+            SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
+
+            // MAKES LOTS OF HUNDREDS TO SAVE TO DB
             int nbHundreds = articles.size()/100;
             if( articles.size()%100!=0 ){
                 nbHundreds++;
@@ -110,13 +113,8 @@ public class NewsDb extends SQLiteOpenHelper {
                                 "        " + System.currentTimeMillis() + " ");
                     }
                 }
-
                 String sql = stringBuilder.toString();
-                SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
                 sqLiteDatabase.execSQL(sql);
-
-
-
             }
 
         }
@@ -131,25 +129,29 @@ public class NewsDb extends SQLiteOpenHelper {
         Cursor cursor = null;
         if (newsPaper == null) {
             if( includeKeywords==false ) {
-                cursor = sqLiteDatabase.query(ARTICLES_TABLE, null, "date>" + dateFrom, null, null, null, null);
+                cursor = sqLiteDatabase.rawQuery("SELECT * FROM " + ARTICLES_TABLE + " " +
+                                                 "WHERE createdAt>" + dateFrom + " " +
+                                                 "ORDER BY " + ARTICLES_TABLE + ".id", null);
             }
             else {
                 cursor = sqLiteDatabase.rawQuery("SELECT * FROM " + ARTICLES_TABLE + " " +
                         "LEFT OUTER JOIN " + KEYWORDS_TABLE + " " +
                         "ON " + ARTICLES_TABLE + ".id = " + KEYWORDS_TABLE + ".articleId " +
-                        "WHERE date>" + dateFrom + " " +
+                        "WHERE createdAt>" + dateFrom + " " +
                         "ORDER BY " + ARTICLES_TABLE + ".id", null);
             }
         }
         else {
             if( includeKeywords==false ) {
-                cursor = sqLiteDatabase.query(ARTICLES_TABLE, null, "date>" + dateFrom + " AND newsPaper=" + newsPaper.ordinal(), null, null, null, null);
+                cursor = sqLiteDatabase.rawQuery("SELECT * FROM " + ARTICLES_TABLE + " " +
+                                                 "WHERE createdAt>" + dateFrom + " AND newsPaper="+newsPaper.ordinal() + " " +
+                                                 "ORDER BY " + ARTICLES_TABLE + ".id", null);
             }
             else {
                 cursor = sqLiteDatabase.rawQuery("SELECT * FROM " + ARTICLES_TABLE + " " +
                         "LEFT OUTER JOIN " + KEYWORDS_TABLE + " " +
                         "ON " + ARTICLES_TABLE + ".id = " + KEYWORDS_TABLE + ".articleId " +
-                        "WHERE date>" + dateFrom + " AND newsPaper=" + newsPaper.ordinal() + " " +
+                        "WHERE createdAt>" + dateFrom + " AND newsPaper=" + newsPaper.ordinal() + " " +
                         "ORDER BY " + ARTICLES_TABLE + ".id", null);
             }
         }
@@ -224,7 +226,7 @@ public class NewsDb extends SQLiteOpenHelper {
     public void clearArticles( Long beforeDate ){
 
         SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
-        sqLiteDatabase.execSQL("DELETE * FROM " + ARTICLES_TABLE + " WHERE date<" + beforeDate);
+        sqLiteDatabase.execSQL("DELETE * FROM " + ARTICLES_TABLE + " WHERE createdAt<" + beforeDate);
     }
 
 
@@ -238,7 +240,7 @@ public class NewsDb extends SQLiteOpenHelper {
             }
             List<Keyword> keywords = new ArrayList<>();
             for( Article article : articles ) {
-                if( article.getKeywords()!=null && article.getKeywords().size()>0 ) {
+                if( article.getKeywor ds()!=null && article.getKeywords().size()>0 ) {
 
                     for (String keywordStr : article.getKeywords() ) {
                         Keyword keyword = new Keyword();
@@ -252,30 +254,47 @@ public class NewsDb extends SQLiteOpenHelper {
             // SAVE TO DB
             if( keywords!=null && keywords.size()>0 ) {
 
-                Keyword keyword = keywords.get(0);
-
-                StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.append("INSERT INTO '" + KEYWORDS_TABLE + "'");
-                stringBuilder.append("SELECT " +
-                        "NULL                      AS id, " +
-                        "'" + keyword.keywordStr + "' AS keyword, " +
-                        "'" + keyword.articleId  + "' AS articleId ");
-
-                if( keywords.size()>1 ) {
-
-                    for (int k=1 ; k<keywords.size() ; k++ ) {
-
-                        keyword = keywords.get(k);
-                        stringBuilder.append("UNION ALL SELECT " +
-                                "       NULL ," +
-                                "       '" + keyword.keywordStr + "'," +
-                                "       '" + keyword.articleId + "' ");
-                    }
-                }
-                String sql = stringBuilder.toString();
                 SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
-                sqLiteDatabase.execSQL(sql);
 
+                // SAVE KEYWORDS AS LOTS OF HUNDREDS
+                int nbHundreds = keywords.size()/100;
+                if( keywords.size()%100!=0 ){
+                    nbHundreds++;
+                }
+                for(int n=0 ; n<nbHundreds ; n++ ) {
+
+                    List<Keyword> keywordsToSave;
+                    if (n < nbHundreds - 1) {
+                        keywordsToSave = keywords.subList(n * 100, n * 100 + 100);
+                    } else {
+                        // LAST ONE
+                        keywordsToSave = keywords.subList(n * 100, keywords.size());
+                    }
+
+                    Keyword keyword = keywordsToSave.get(0);
+                    StringBuilder stringBuilder = new StringBuilder();
+                    stringBuilder.append("INSERT INTO '" + KEYWORDS_TABLE + "' ");
+                    stringBuilder.append("SELECT " +
+                            "NULL                      AS id, " +
+                            "'" + keyword.keywordStr + "' AS keyword, " +
+                            "'" + keyword.articleId  + "' AS articleId ");
+
+                    if( keywordsToSave.size()>1 ) {
+
+                        for (int k=1 ; k<keywordsToSave.size() ; k++ ) {
+
+                            keyword = keywordsToSave.get(k);
+                            stringBuilder.append("UNION ALL SELECT " +
+                                    "       NULL ," +
+                                    "       '" + keyword.keywordStr + "'," +
+                                    "       '" + keyword.articleId + "' ");
+                        }
+                    }
+
+                    String sql = stringBuilder.toString();
+                    sqLiteDatabase.execSQL(sql);
+
+                }
             }
         }
     }
@@ -478,9 +497,21 @@ public class NewsDb extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL("UPDATE " + ARTICLES_TABLE + " SET " +
                 "matchingArticlesIds = '" + article.getMatchingArticlesIds() + "' " +
                 "WHERE id = " + article.getId());
-        // UPDATE COMPANY SET ADDRESS = 'Texas' WHERE ID = 6;
 
     }
+
+
+    public void updateImagesFileNames(Article article) {
+
+        SQLiteDatabase sqLiteDatabase = getWritableDatabase();
+        sqLiteDatabase.execSQL("UPDATE " + ARTICLES_TABLE + " SET " +
+                "imagesFileName = '" + article.getImagesFileNameStr() + "' ," +
+                "thumbnailFileName = '" + article.getThumbnailUrlStr() + "' " +
+                "WHERE id = " + article.getId());
+
+    }
+
+
 
 
     public List<Article> getArticlesWithMatchingArticles( Long dateFrom , Article.NewsPaper newsPaper ){
@@ -490,7 +521,7 @@ public class NewsDb extends SQLiteOpenHelper {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append( "SELECT * FROM " + ARTICLES_TABLE + " " );
         stringBuilder.append( "WHERE matchingArticlesIds !='null' AND " );
-        stringBuilder.append( "date>"+dateFrom+" " );
+        stringBuilder.append( "createdAt>"+dateFrom+" " );
         if( newsPaper!=null ) {
             stringBuilder.append(" AND newsPaper=" + newsPaper.ordinal() + " ");
         }
@@ -513,6 +544,30 @@ public class NewsDb extends SQLiteOpenHelper {
 
         return articles;
     }
+
+
+
+    public List<Article> getArticlesWithoutImageFileName() {
+
+        List<Article> articles = new ArrayList<>();
+
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append( "SELECT * FROM " + ARTICLES_TABLE + " " );
+        stringBuilder.append( "WHERE imagesFileName ='null' " );
+        stringBuilder.append( "ORDER BY id");
+
+        SQLiteDatabase sqLiteDatabase = getReadableDatabase();
+        Cursor cursor = sqLiteDatabase.rawQuery( stringBuilder.toString() , null);
+
+        while( cursor.moveToNext() ){
+            articles.add( readArticle(cursor) );
+        }
+
+        cursor.close();
+
+        return articles;
+    }
+
 
 
 

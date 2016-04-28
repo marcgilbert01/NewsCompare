@@ -4,8 +4,10 @@ import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.os.Environment;
 import android.test.AndroidTestCase;
 
+import org.apache.commons.io.FileUtils;
 import org.xml.sax.SAXException;
 
 import java.io.File;
@@ -28,33 +30,36 @@ import marc.newscompare.api.TheGuardianArticlesLoader;
  */
 public class ArticlesLoaderTest extends AndroidTestCase{
 
+    ArticlesLoader articlesLoader;
 
-    public void testLoadArticles(){
+    @Override
+    public void setUp() throws Exception {
 
-
-
-
+        articlesLoader = ArticlesLoader.newInstance( Article.NewsPaper.THE_GUARDIAN ,
+        new File( Environment.getExternalStorageDirectory()+"/newsCompare/images" ) );
 
     }
 
+    @Override
+    public void tearDown() throws Exception {
 
+        articlesLoader = null;
+        File file = new File( Environment.getExternalStorageDirectory()+"/newsCompare" );
+        FileUtils.deleteDirectory(file);
+
+    }
 
     public void testSaveImage(){
-
-        Article article = new Article();
-        article.setTitle("test Article.saveimages() ");
 
         Bitmap[] dummyBitmaps = createDummyBitmaps();
 
         String[] imagesNames = new String[dummyBitmaps.length];
 
         for(int b=0 ; b<dummyBitmaps.length ; b++  ){
-            imagesNames[b] = ArticlesLoader.saveImage( dummyBitmaps[b] , false);
+            imagesNames[b] = articlesLoader.saveImage( dummyBitmaps[b] , false);
         }
 
-
         // RETRIEVE BITMAPS
-
         for( int i=0 ; i<imagesNames.length ; i++ ){
 
             File imageFile = new File(imagesNames[i]);
@@ -70,6 +75,8 @@ public class ArticlesLoaderTest extends AndroidTestCase{
                 Bitmap dummyBitmap = dummyBitmaps[i];
                 int pixelsFromArticle[] = new int[ dummyBitmap.getWidth() * dummyBitmap.getHeight() ];
                 dummyBitmap.getPixels(pixelsFromArticle, 0, dummyBitmap.getWidth(), 0, 0, dummyBitmap.getWidth(), dummyBitmap.getHeight());
+                dummyBitmap = Bitmap.createScaledBitmap( dummyBitmap , 600 , 600 , false);
+
 
                 assertTrue( dummyBitmap.getWidth()  == bitmapFromFile.getWidth() );
                 assertTrue( dummyBitmap.getHeight() == bitmapFromFile.getHeight() );
@@ -85,6 +92,63 @@ public class ArticlesLoaderTest extends AndroidTestCase{
 
 
     }
+
+
+
+    public void testSaveImages(){
+
+
+        Article article = new Article();
+        article.setThumbnailUrlStr("http://www.casiocd.co.uk/images/cbmslogo.jpg");
+        String[] imagesUrls = new String[]{
+                    "http://www.casiomedia.co.uk/medialibrary/76511..jpg",
+                    "http://www.casiomedia.co.uk/medialibrary/76547..jpg",
+                    "http://www.casio.co.uk/media/176531/v-r7000_banner.jpg"
+        };
+        article.setImagesUrls(imagesUrls);
+
+        article = articlesLoader.saveArticleImages(article);
+
+        assertNotNull( article.getThumbnailFileName() );
+        assertTrue( article.getThumbnailFileName().length()>2 );
+
+        File file = new File( article.getThumbnailFileName() );
+        assertNotNull(file);
+        assertTrue(file.exists());
+        try {
+            Bitmap bitmap = BitmapFactory.decodeStream( new FileInputStream(file) );
+            assertEquals( ArticlesLoader.THUMBNAIL_WIDTH , bitmap.getWidth() );
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        assertNotNull(article.getImagesFilesNames());
+        assertTrue( article.getImagesFilesNames().length>0 );
+
+        for(String imageFileName : article.getImagesFilesNames() ){
+
+            assertNotNull(imageFileName);
+            assertTrue(imageFileName.length()>0);
+
+            file = new File(imageFileName);
+            assertNotNull(file);
+            assertTrue(file.exists());
+            Bitmap bitmap = null;
+            try {
+                bitmap = BitmapFactory.decodeStream( new FileInputStream(file) );
+                assertEquals( ArticlesLoader.IMAGE_WIDTH , bitmap.getWidth() );
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+
+
+
+    }
+
+
+
+
 
 
 

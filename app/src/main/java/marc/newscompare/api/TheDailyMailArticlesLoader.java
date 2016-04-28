@@ -31,16 +31,75 @@ import javax.xml.parsers.ParserConfigurationException;
  */
 public class TheDailyMailArticlesLoader extends ArticlesLoader{
 
-    static{
-       categoriesMap = new HashMap<>();
-       categoriesMap.put(Article.Category.HOME, "http://www.dailymail.co.uk/home/index.rss" );
-       // categoriesMap.put(Article.Category.POLITICS , "" );
-       categoriesMap.put(Article.Category.BUSINESS , "http://www.dailymail.co.uk/money/index.rss" );
-       // categoriesMap.put(Article.Category.CULTURE  , "" );
-       categoriesMap.put(Article.Category.SCIENCE  , "http://www.dailymail.co.uk/sciencetech/index.rss" );
-       categoriesMap.put(Article.Category.SPORT    , "http://www.dailymail.co.uk/sport/index.rss" );
+
+
+    SimpleDateFormat simpleDateFormat   = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss ZZZZZ");
+
+    public TheDailyMailArticlesLoader() {
+
+        categoriesMap = new HashMap<>();
+        categoriesMap.put(Article.Category.HOME, "http://www.dailymail.co.uk/home/index.rss" );
+        // categoriesMap.put(Article.Category.POLITICS , "" );
+        categoriesMap.put(Article.Category.BUSINESS , "http://www.dailymail.co.uk/money/index.rss" );
+        // categoriesMap.put(Article.Category.CULTURE  , "" );
+        categoriesMap.put(Article.Category.SCIENCE  , "http://www.dailymail.co.uk/sciencetech/index.rss" );
+        categoriesMap.put(Article.Category.SPORT    , "http://www.dailymail.co.uk/sport/index.rss" );
+
     }
-    SimpleDateFormat simpleDateFormat   = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z");
+
+    @Override
+    String getElementItemTagName() {
+        return "item";
+    }
+
+    @Override
+    Article buildArticle(Element elementItem) {
+
+        Article article = new Article();
+        article.newsPaper = Article.NewsPaper.THE_DAILY_MAIL;
+        // TITLE
+        Element elementTitle = (Element) elementItem.getElementsByTagName("title").item(0);
+        if( elementTitle!=null ) {
+            article.title = elementTitle.getTextContent();
+        }
+        // DESCRIPTION
+        Element elementDescription = (Element) elementItem.getElementsByTagName("description").item(0);
+        if( elementDescription!=null ) {
+            article.description = elementDescription.getTextContent();
+        }
+        // AUTHOR
+        Element elementAuthor = (Element) elementItem.getElementsByTagName("media:credit").item(0);
+        if( elementAuthor!=null ) {
+            article.author = elementAuthor.getTextContent();
+        }
+        // DATE
+        Element elementDate = (Element) elementItem.getElementsByTagName("pubDate").item(0);
+        if( elementDate!=null ){
+            String dateStr = elementDate.getTextContent();
+            Date date = null;
+            try {
+                date = simpleDateFormat.parse(dateStr);
+                article.date = date.getTime();
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+        // IMAGES
+        NodeList nodeListMediaContent = elementItem.getElementsByTagName("media:content");
+        if( nodeListMediaContent!=null && nodeListMediaContent.getLength()>0 ) {
+            String[] imagesUrls = new String[nodeListMediaContent.getLength()];
+            for (int b = 0; b < imagesUrls.length; b++) {
+                Element elementMediaContent = (Element) nodeListMediaContent.item(b);
+                imagesUrls[b] = elementMediaContent.getAttribute("url");
+                if (b == 0) {
+                    article.setThumbnailUrlStr(imagesUrls[b]);
+                }
+            }
+            article.setImagesUrls(imagesUrls);
+        }
+
+        return article;
+    }
 
 
 
@@ -86,8 +145,6 @@ public class TheDailyMailArticlesLoader extends ArticlesLoader{
 
     }
 */
-
-
 
 /*
     public List<Article> parseNewArticles(String xml , List<Article> existingArticles ) throws ParserConfigurationException, SAXException, ParseException {
@@ -151,7 +208,7 @@ public class TheDailyMailArticlesLoader extends ArticlesLoader{
 */
 
 
-
+/*
     private Article createArticle(Element elementItem) throws ParseException, IOException {
 
         Article article = new Article();
@@ -184,8 +241,6 @@ public class TheDailyMailArticlesLoader extends ArticlesLoader{
         return article;
 
     }
-
-
-
+*/
 
 }

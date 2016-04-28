@@ -236,4 +236,5 @@ public class Article implements Serializable{
     public void setThumbnailUrlStr(String thumbnailUrlStr) {
         this.thumbnailUrlStr = thumbnailUrlStr;
     }
+
 }

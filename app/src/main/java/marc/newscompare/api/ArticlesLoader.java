@@ -38,16 +38,21 @@ import javax.xml.parsers.ParserConfigurationException;
  */
 public abstract class ArticlesLoader {
 
-    static final int THUMBNAIL_WIDTH = 150;
-    static final int IMAGE_WIDTH     = 600;
+    static public final int THUMBNAIL_WIDTH = 150;
+    static public final int IMAGE_WIDTH     = 600;
 
     static List<Article> articles = new ArrayList<>();
-    static File imageDirectory;
+    Map<Article.Category,String> categoriesMap = null;
 
-    static Map<Article.Category,String> categoriesMap = null;
+    File imageDirectory;
 
+    static public ArticlesLoader newInstance(Article.NewsPaper newsPaper , File imageDirectory){
 
+        ArticlesLoader articlesLoader = newsPaper.getArticlesLoader();
+        articlesLoader.imageDirectory = imageDirectory;
 
+        return articlesLoader;
+    }
 
     public Article.NewsPaper getNewsPaperType(){
 
@@ -90,10 +95,9 @@ public abstract class ArticlesLoader {
 
     abstract String getElementItemTagName();
     abstract Article buildArticle(Element elementItem);
-    //abstract public List<Article> getNewArticles(List<Article> existingArticles);
 
 
-    public List<Article> getNewArticlesFromRss(List<Article> existingArticles){
+    public List<Article> getNewArticles(List<Article> existingArticles){
 
         List<Article> newArticles = new ArrayList<>();
         // FOR EACH CATEGORY
@@ -167,7 +171,7 @@ public abstract class ArticlesLoader {
                         // CHECK IF ARTICLE IS ALREADY LOADED
                         int position = findArticleByTitle(existingArticles, article.getTitle());
                         // CREATE ARTICLE
-                        if (position < 0 == false) {
+                        if ( position < 0 ) {
                             articles.add(article);
                         }
                     }
@@ -181,14 +185,14 @@ public abstract class ArticlesLoader {
 
     public Article saveArticleImages(Article article){
 
-        if(  article!=null )
+        if(  article!=null ) {
 
-            if( article.getThumbnailFileName()!=null ){
-
+            // SAVE THUMBNAIL
+            if (article.getThumbnailUrlStr() != null) {
                 try {
-                    URL url = new URL( article.getThumbnailUrlStr() );
-                    Bitmap bitmap   = BitmapFactory.decodeStream( url.openConnection().getInputStream());
-                    String fileName = saveImage( bitmap , true );
+                    URL url = new URL(article.getThumbnailUrlStr());
+                    Bitmap bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream());
+                    article.setThumbnailFileName(saveImage(bitmap, true));
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
@@ -196,17 +200,23 @@ public abstract class ArticlesLoader {
                 }
             }
 
-
-            String[] imagesFilesName
-            for(String urlImages  ){
-
-                article.get
+            // SAVE IMAGES
+            if (article.getImagesUrls() != null) {
+                String[] imagesFilesName = new String[article.getImagesUrls().length];
+                for (int i = 0; i < article.getImagesUrls().length; i++) {
+                    try {
+                        URL url = new URL(article.getImagesUrls()[i]);
+                        Bitmap bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream());
+                        imagesFilesName[i] = saveImage(bitmap, false);
+                    } catch (MalformedURLException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                article.setImagesFilesNames(imagesFilesName);
             }
-
-
         }
-
-
 
         return article;
     }
@@ -215,7 +225,7 @@ public abstract class ArticlesLoader {
 
 
 
-    static public String saveImage( Bitmap bitmap , Boolean asThumbnail) {
+    public String saveImage( Bitmap bitmap , Boolean asThumbnail) {
 
         String fileName = null;
 
@@ -255,7 +265,7 @@ public abstract class ArticlesLoader {
     }
 
 
-    static public void deletesImages(Long olderThan){
+    public void deletesImages(Long olderThan){
 
         if( imageDirectory!=null ) {
 
@@ -267,13 +277,14 @@ public abstract class ArticlesLoader {
         }
     }
 
-    public static File getImageDirectory() {
+
+
+
+    public File getImageDirectory() {
         return imageDirectory;
     }
 
-    public static void setImageDirectory(File imageDirectory) {
-        ArticlesLoader.imageDirectory = imageDirectory;
-    }
+
 
 
 

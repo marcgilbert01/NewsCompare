@@ -44,8 +44,14 @@ import javax.xml.parsers.ParserConfigurationException;
 
 public class TheIndependentArticlesLoader extends ArticlesLoader{
 
-    static Map<Article.Category,String> categoriesMap = null;
-    static{
+
+
+    //SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    SimpleDateFormat simpleDateFormat   = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss ZZZZZ");
+    //                                                          Thu, 28 Apr 2016 12:23:00 +0000
+
+    public TheIndependentArticlesLoader() {
+
         categoriesMap = new HashMap<>();
         categoriesMap.put(Article.Category.HOME     , "http://www.independent.co.uk/rss" );
         categoriesMap.put(Article.Category.POLITICS , "http://www.independent.co.uk/news/uk/politics/rss" );
@@ -57,6 +63,66 @@ public class TheIndependentArticlesLoader extends ArticlesLoader{
 
     }
 
+    @Override
+    String getElementItemTagName() {
+        return "item";
+    }
+
+    @Override
+    Article buildArticle(Element elementItem) {
+
+        Article article = new Article();
+        article.newsPaper = Article.NewsPaper.THE_INDEPENDENT;
+        // TITLE
+        Element elementTitle = (Element) elementItem.getElementsByTagName("title").item(0);
+        if( elementTitle!=null ) {
+            article.title = elementTitle.getTextContent();
+        }
+        // DESCRIPTION
+        Element elementDescription = (Element) elementItem.getElementsByTagName("description").item(0);
+        if( elementDescription!=null ){
+            article.description = elementDescription.getTextContent();
+        }
+        // AUTHOR
+        Element elementAuthor = (Element) elementItem.getElementsByTagName("dc:creator").item(0);
+        if( elementAuthor!=null ) {
+            article.author = elementAuthor.getTextContent();
+        }
+        // DATE
+        Element elementDate = (Element) elementItem.getElementsByTagName("pubDate").item(0);
+        if( elementDate!=null ) {
+
+            String dateStr = elementDate.getTextContent();
+            Date date = null;
+            try {
+                date = simpleDateFormat.parse(dateStr);
+                article.date = date.getTime();
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+        // IMAGES
+        NodeList nodeListMediaContent = elementItem.getElementsByTagName("media:content");
+        if( nodeListMediaContent!=null && nodeListMediaContent.getLength()>0 ) {
+            String[] imagesUrls = new String[nodeListMediaContent.getLength()];
+            String[] imagesFileNames = new String[nodeListMediaContent.getLength()];
+            for (int b = 0; b < imagesUrls.length; b++) {
+                Element elementMediaContent = (Element) nodeListMediaContent.item(b);
+                imagesUrls[b] = elementMediaContent.getAttribute("url");
+                if (b == 0) {
+                    article.setThumbnailUrlStr(imagesUrls[b]);
+                }
+            }
+            article.setImagesFilesNames(imagesFileNames);
+        }
+
+        return article;
+
+    }
+
+
+
+/*
     @Override
     public List<Article> getNewArticles(List<Article> existingArticles) {
 
@@ -181,6 +247,6 @@ public class TheIndependentArticlesLoader extends ArticlesLoader{
 
         return articles;
     }
-
+*/
 
 }

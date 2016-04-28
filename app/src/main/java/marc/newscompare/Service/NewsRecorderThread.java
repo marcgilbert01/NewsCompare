@@ -11,6 +11,7 @@ import java.util.List;
 
 import marc.newscompare.api.Article;
 import marc.newscompare.api.ArticlesLoader;
+import marc.newscompare.api.KeywordsExtractor;
 import marc.newscompare.dao.NewsDb;
 import yahooapi.contentAnalysis.YahooContentAnalysisApi;
 
@@ -23,6 +24,7 @@ public class NewsRecorderThread extends Thread{
     private Context context;
     private Boolean exit = false;
     private NewsDb newsDb;
+    private File imageDirectory;
 
     private NewsRecorderThreadListener newsRecorderThreadListener;
     private Status status = Status.STOPPED;
@@ -36,9 +38,10 @@ public class NewsRecorderThread extends Thread{
     }
 
 
-    public NewsRecorderThread(Context context, NewsDb newsDb) {
+    public NewsRecorderThread(Context context, NewsDb newsDb , File imageDirectory) {
         this.context = context;
         this.newsDb = newsDb;
+        this.imageDirectory = imageDirectory;
     }
 
     @Override
@@ -48,52 +51,29 @@ public class NewsRecorderThread extends Thread{
         while(exit==false) {
 
             // FOR EACH NEWSPAPER
-            if( newsRecorderThreadListener!=null ){
-                status = Status.LOADING_ARTICLES;
-                newsRecorderThreadListener.onStatusChange( status );
-                System.out.println( "###### NewsRecorderThread  status "+this.status + " "+new Date() );
-            }
+            System.out.println( "###### NewsRecorderThread  status "+this.status + " "+new Date() );
             for (Article.NewsPaper newsPaper : Article.NewsPaper.values()) {
 
                 // GET EXISTING ARTICLES FROM DB
                 List<Article> existingArticles = newsDb.getArticles( 0L , newsPaper , false);
                 // GET NEW ARTICLES FROM RSS FEED
-                ArticlesLoader articlesLoader = newsPaper.getArticlesLoader();
+                ArticlesLoader articlesLoader = ArticlesLoader.newInstance( newsPaper , imageDirectory );
                 List<Article> newArticles = articlesLoader.getNewArticles( existingArticles );
                 // SAVE NEW ARTICLES TO DB
                 newsDb.saveArticles( newArticles );
             }
 
             // GET KEYWORDS FROM ARTICLES
-            if( newsRecorderThreadListener!=null ){
-                status = Status.EXTRACTING_KEYWORDS;
-                newsRecorderThreadListener.onStatusChange( status );
-                System.out.println("###### NewsRecorderThread  status " + this.status+ " "+new Date());
-            }
+            System.out.println("###### NewsRecorderThread  status " + this.status+ " "+new Date());
             List<Article> articlesWithNoKeywords = newsDb.getArticlesWithNoKeywords();
             if( articlesWithNoKeywords!=null && articlesWithNoKeywords.size()>0 ) {
 
-                YahooContentAnalysisApi yahooContentAnalysis = new YahooContentAnalysisApi();
-                for (Article article : articlesWithNoKeywords) {
-                    // GET KEYWORDS FROM YAHOO API
-                    String[] keywords = yahooContentAnalysis.getKeywords( article.getDescription() );
-                    if( keywords==null ){
-                        keywords = new String[]{null};
-                    }
-                    List<String> keywordList = new ArrayList<>(Arrays.asList(keywords));
-                    article.setKeywords(keywordList);
-                    // SAVE KEYWORDS
-                    List<Article> articlesWithKeywords = new ArrayList<>();
-                    articlesWithKeywords.add(article);
-                    newsDb.saveKeywords(articlesWithKeywords);
-                }
+                articlesWithNoKeywords = new KeywordsExtractor().extractKeywords(articlesWithNoKeywords);
+                newsDb.saveKeywords(articlesWithNoKeywords);
             }
+
             // COMPARE ALL ARTICLES AND SAVE MATCHING ARTICLES
-            if( newsRecorderThreadListener!=null ){
-                status = Status.COMPARING_ARTICLES;
-                newsRecorderThreadListener.onStatusChange( status );
-                System.out.println("###### NewsRecorderThread  status " + this.status+ " "+new Date());
-            }
+            System.out.println("###### NewsRecorderThread  status " + this.status+ " "+new Date());
             List<Article> allArticles = newsDb.getArticles( 0L , null , true );
             for(Article article : allArticles  ){
 
@@ -105,6 +85,7 @@ public class NewsRecorderThread extends Thread{
                     // List<Article> matchingArticles = newsDb.getMatchingArticles( article , 2 );
                     List<Article> matchingArticles = new ArrayList<>();
                     for (Article articleToCheck : allArticles) {
+
                         if (  articleToCheck != article &&
                               articleToCheck.getKeywords() != null &&
                               articleToCheck.getKeywords().size() > 0 &&
@@ -128,17 +109,21 @@ public class NewsRecorderThread extends Thread{
             }
 
             // DELETE OLDER ARTICLES (OLDER THAN ONE WEEK)
+            ArticlesLoader articlesLoader = ArticlesLoader.newInstance( Article.NewsPaper.THE_GUARDIAN , imageDirectory );
             Long now = System.currentTimeMillis();
             Long aWeekAgo = now - (7 * 24 * 3600 * 1000);
             newsDb.deleteArticles(aWeekAgo);
-            ArticlesLoader.deletesImages(aWeekAgo);
+            articlesLoader.deletesImages(aWeekAgo);
+
+            // LOAD THUMBNAIL
+            List<Article> articlesWithoutImageFileName = newsDb.getArticlesWithoutImageFileName();
+            for(Article articleWithoutImage : articlesWithoutImageFileName ){
+                articleWithoutImage = articlesLoader.saveArticleImages(articleWithoutImage);
+                newsDb.updateImagesFileNames(articleWithoutImage);
+            }
 
             // SLEEP FOR 1 HOUR
-            if( newsRecorderThreadListener!=null ){
-                status = Status.SLEEPING;
-                newsRecorderThreadListener.onStatusChange( status );
-                System.out.println("###### NewsRecorderThread  status " + this.status + " "+new Date());
-            }
+            System.out.println("###### NewsRecorderThread  status " + this.status + " "+new Date());
             try {
                 sleep( 3600000 );
                 //sleep( 30000 );
@@ -172,6 +157,7 @@ public class NewsRecorderThread extends Thread{
 
         this.newsRecorderThreadListener = newsRecorderThreadListener;
     }
+
 
 
 

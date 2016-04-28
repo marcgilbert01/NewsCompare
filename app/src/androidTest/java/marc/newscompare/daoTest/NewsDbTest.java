@@ -32,26 +32,16 @@ public class NewsDbTest extends InstrumentationTestCase {
     static final File IMG_DIRECTORY = new File(Environment.getExternalStorageDirectory() + "/newsCompare/images"  );
 
     @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    public void setUp() throws Exception {
 
-        // DELETE DATABASE
-        File dbFile = new File( DB_DIRECTORY + "/news.db");
-        if (dbFile.exists()) {
-            dbFile.delete();
-        }
-
-        ArticlesLoader.setImageDirectory( IMG_DIRECTORY );
-        // DELETE IMAGES DIRECTORY
+        // DELETE DIRECTORY
         try {
-            FileUtils.deleteDirectory( ArticlesLoader.getImageDirectory() );
+            FileUtils.deleteDirectory( DB_DIRECTORY );
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
-
     }
+
 
     public void testSaveArticles() {
 
@@ -158,7 +148,7 @@ public class NewsDbTest extends InstrumentationTestCase {
 
         // PREPARE DUMMY ARTICLES
         List<Article> articles = new ArrayList<Article>();
-        int nbArticlesToAdd = 5;
+        int nbArticlesToAdd = 100;
         Long now = System.currentTimeMillis();
         for (int a = 0; a < nbArticlesToAdd; a++) {
             Article article = new Article();
@@ -211,13 +201,13 @@ public class NewsDbTest extends InstrumentationTestCase {
 
             assertEquals( articleFromDb.getImagesFileNameStr() , articleFromDbIncludeKeywords.getImagesFileNameStr() );
 
-            assertEquals(articleFromDb.getDate(), articleFromDbIncludeKeywords.getDate());
+            assertEquals( articleFromDb.getDate(), articleFromDbIncludeKeywords.getDate());
 
-            assertEquals(articleFromDb.getKeywords().get(0), articleFromDbIncludeKeywords.getKeywords().get(0));
+            assertEquals( articleFromDb.getKeywords().get(0), articleFromDbIncludeKeywords.getKeywords().get(0));
 
-            assertEquals(articleFromDb.getKeywords().get(1), articleFromDbIncludeKeywords.getKeywords().get(1));
+            assertEquals( articleFromDb.getKeywords().get(1), articleFromDbIncludeKeywords.getKeywords().get(1));
 
-            assertEquals(articleFromDb.getKeywords().get(2), articleFromDbIncludeKeywords.getKeywords().get(2));
+            assertEquals( articleFromDb.getKeywords().get(2), articleFromDbIncludeKeywords.getKeywords().get(2));
 
         }
 
@@ -590,7 +580,7 @@ public class NewsDbTest extends InstrumentationTestCase {
 
         int totalImages = 0;
         int nbOldImages = 0;
-        File imagesDirectory = ArticlesLoader.getImageDirectory() ;
+        File imagesDirectory = IMG_DIRECTORY ;
         totalImages = imagesDirectory.listFiles().length;
         for( File file : imagesDirectory.listFiles() ){
             if( file.lastModified()<olderThan ){
@@ -609,7 +599,7 @@ public class NewsDbTest extends InstrumentationTestCase {
         assertEquals( theDailyMailArticles.size() , articlesFromDb.size() );
 
         // CHECK IMAGES
-        ArticlesLoader.deletesImages(olderThan);
+        theDailyMailArticlesLoader.deletesImages(olderThan);
 
         assertTrue(totalImages > 0);
         assertTrue(nbOldImages > 0);
@@ -760,9 +750,56 @@ public class NewsDbTest extends InstrumentationTestCase {
 
         assertEquals( 0 , articlesWithMatchingArticles.size() );
 
+    }
+
+
+
+
+    public void testGetArticlesWithoutImages(){
+
+        // PREPARE DUMMY ARTICLES
+        List<Article> articles = new ArrayList<Article>();
+        int nbArticlesToAdd = 5;
+        Long now = System.currentTimeMillis();
+        for (int a = 0; a < nbArticlesToAdd; a++) {
+            Article article = new Article();
+            article.setTitle(" tilte " + a);
+            article.setDescription("description'quote" + a);
+            article.setText("text " + a);
+            article.setAuthor("author " + a);
+            article.setImagesFileNameStr("file" + a + ".jpg,file2_" + a + ".jpg");
+            article.setNewsPaper(Article.NewsPaper.THE_GUARDIAN);
+            article.setDate(now);
+            articles.add(article);
+        }
+        for (int a = 0; a < nbArticlesToAdd; a++) {
+            Article article = new Article();
+            article.setTitle(" tilte " + a);
+            article.setDescription("description'quote" + a);
+            article.setText("text " + a);
+            article.setAuthor("author " + a);
+            article.setImagesFileNameStr(null);
+            article.setNewsPaper(Article.NewsPaper.THE_GUARDIAN);
+            article.setDate(now);
+            articles.add(article);
+        }
+
+        // SAVE ARTICLES TO DB
+        NewsDb newsDb = new NewsDb( getInstrumentation().getContext() , DB_DIRECTORY );
+        newsDb.saveArticles(articles);
+        // GET ARTICLES FROM DB
+        List<Article> articlesWithoutImagesFileName = newsDb.getArticlesWithoutImageFileName();
+
+        assertNotNull(articlesWithoutImagesFileName);
+
+        assertEquals( nbArticlesToAdd , articlesWithoutImagesFileName.size() );
+
 
 
     }
+
+
+
 
 
 
