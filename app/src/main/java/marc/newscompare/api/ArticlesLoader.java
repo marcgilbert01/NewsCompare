@@ -201,7 +201,7 @@ public abstract class ArticlesLoader {
             }
 
             // SAVE IMAGES
-            if (article.getImagesUrls() != null) {
+            if ( article.getImagesUrls() != null) {
                 String[] imagesFilesName = new String[article.getImagesUrls().length];
                 for (int i = 0; i < article.getImagesUrls().length; i++) {
                     try {
@@ -269,9 +269,12 @@ public abstract class ArticlesLoader {
 
         if( imageDirectory!=null ) {
 
-            for (File file : imageDirectory.listFiles()) {
-                if (file.lastModified() < olderThan) {
-                    file.delete();
+            File[] imageFiles = imageDirectory.listFiles();
+            if( imageFiles!=null ) {
+                for (File file : imageDirectory.listFiles()) {
+                    if (file.lastModified() < olderThan) {
+                        file.delete();
+                    }
                 }
             }
         }

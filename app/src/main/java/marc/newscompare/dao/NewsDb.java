@@ -240,7 +240,8 @@ public class NewsDb extends SQLiteOpenHelper {
             }
             List<Keyword> keywords = new ArrayList<>();
             for( Article article : articles ) {
-                if( article.getKeywor ds()!=null && article.getKeywords().size()>0 ) {
+
+                if( article.getKeywords()!=null  ) {
 
                     for (String keywordStr : article.getKeywords() ) {
                         Keyword keyword = new Keyword();
@@ -249,8 +250,14 @@ public class NewsDb extends SQLiteOpenHelper {
                         keywords.add(keyword);
                     }
                 }
-            }
+                else{
 
+                    Keyword keyword = new Keyword();
+                    keyword.keywordStr = "null";
+                    keyword.articleId  = article.getId();
+                    keywords.add(keyword);
+                }
+            }
             // SAVE TO DB
             if( keywords!=null && keywords.size()>0 ) {
 
@@ -393,7 +400,7 @@ public class NewsDb extends SQLiteOpenHelper {
 
 
 
-    // METHOD WILL RETURNED ARTICLES WHO HAVE 2 OR MORE OF THE KEYWORDS PROVIDED
+    // METHOD WILL RETURNED ARTICLES WHO HAVE eg:2 OR MORE OF THE KEYWORDS PROVIDED
     //
     public List<Article> getMatchingArticles( List<String> keywords , int nbMatchingKeywords ){
 
@@ -412,6 +419,7 @@ public class NewsDb extends SQLiteOpenHelper {
                 "LEFT OUTER JOIN " + KEYWORDS_TABLE + " " +
                 "ON " + ARTICLES_TABLE + ".id = " + KEYWORDS_TABLE + ".articleId " +
                 "WHERE keyword IN " + stringBuilderKeywords.toString() + " " +
+                "AND keyword != 'null'  AND  keyword != '' " +
                 "ORDER BY " + ARTICLES_TABLE + ".id", null);
 
 

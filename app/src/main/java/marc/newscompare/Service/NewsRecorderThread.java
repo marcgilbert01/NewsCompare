@@ -51,7 +51,6 @@ public class NewsRecorderThread extends Thread{
         while(exit==false) {
 
             // FOR EACH NEWSPAPER
-            System.out.println( "###### NewsRecorderThread  status "+this.status + " "+new Date() );
             for (Article.NewsPaper newsPaper : Article.NewsPaper.values()) {
 
                 // GET EXISTING ARTICLES FROM DB
@@ -64,7 +63,6 @@ public class NewsRecorderThread extends Thread{
             }
 
             // GET KEYWORDS FROM ARTICLES
-            System.out.println("###### NewsRecorderThread  status " + this.status+ " "+new Date());
             List<Article> articlesWithNoKeywords = newsDb.getArticlesWithNoKeywords();
             if( articlesWithNoKeywords!=null && articlesWithNoKeywords.size()>0 ) {
 
@@ -73,7 +71,6 @@ public class NewsRecorderThread extends Thread{
             }
 
             // COMPARE ALL ARTICLES AND SAVE MATCHING ARTICLES
-            System.out.println("###### NewsRecorderThread  status " + this.status+ " "+new Date());
             List<Article> allArticles = newsDb.getArticles( 0L , null , true );
             for(Article article : allArticles  ){
 
@@ -123,7 +120,6 @@ public class NewsRecorderThread extends Thread{
             }
 
             // SLEEP FOR 1 HOUR
-            System.out.println("###### NewsRecorderThread  status " + this.status + " "+new Date());
             try {
                 sleep( 3600000 );
                 //sleep( 30000 );

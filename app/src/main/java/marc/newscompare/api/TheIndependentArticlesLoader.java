@@ -105,7 +105,6 @@ public class TheIndependentArticlesLoader extends ArticlesLoader{
         NodeList nodeListMediaContent = elementItem.getElementsByTagName("media:content");
         if( nodeListMediaContent!=null && nodeListMediaContent.getLength()>0 ) {
             String[] imagesUrls = new String[nodeListMediaContent.getLength()];
-            String[] imagesFileNames = new String[nodeListMediaContent.getLength()];
             for (int b = 0; b < imagesUrls.length; b++) {
                 Element elementMediaContent = (Element) nodeListMediaContent.item(b);
                 imagesUrls[b] = elementMediaContent.getAttribute("url");
@@ -113,7 +112,7 @@ public class TheIndependentArticlesLoader extends ArticlesLoader{
                     article.setThumbnailUrlStr(imagesUrls[b]);
                 }
             }
-            article.setImagesFilesNames(imagesFileNames);
+            article.setImagesUrls(imagesUrls);
         }
 
         return article;

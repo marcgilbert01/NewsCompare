@@ -207,5 +207,56 @@ public class ArticlesLoaderTest extends AndroidTestCase{
 
 
 
+    public void testDeletesImages(){
+
+        Bitmap[] dummyBitmaps = createDummyBitmaps();
+
+        Article article = new Article();
+        article.setThumbnailUrlStr("http://www.casiocd.co.uk/images/cbmslogo.jpg");
+        String[] imagesUrls = new String[]{
+                "http://www.casiomedia.co.uk/medialibrary/76511..jpg",
+                "http://www.casiomedia.co.uk/medialibrary/76547..jpg",
+                "http://www.casio.co.uk/media/176531/v-r7000_banner.jpg"
+        };
+        article.setImagesUrls(imagesUrls);
+        article = articlesLoader.saveArticleImages(article);
+
+        // SLEEP
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        Long timeImageSaved = System.currentTimeMillis();
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        //
+        article = new Article();
+        article.setThumbnailUrlStr("http://www.casiocd.co.uk/images/cbmslogo.jpg");
+        imagesUrls = new String[]{
+                "http://www.casiomedia.co.uk/medialibrary/76511..jpg",
+                "http://www.casiomedia.co.uk/medialibrary/76547..jpg",
+                "http://www.casio.co.uk/media/176531/v-r7000_banner.jpg"
+        };
+        article.setImagesUrls(imagesUrls);
+        article = articlesLoader.saveArticleImages(article);
+
+        articlesLoader.deletesImages( timeImageSaved );
+
+        File imageDirectory = articlesLoader.getImageDirectory();
+        File[] imageFiles = imageDirectory.listFiles();
+
+        assertEquals( 4 , imageFiles.length );
+
+
+
+    }
+
+
+
 
 }
