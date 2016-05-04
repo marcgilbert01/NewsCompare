@@ -20,18 +20,20 @@ import marc.newscompare.dao.NewsDb;
 public class Article implements Serializable{
 
     int id;
-    String title;
-    String description;
-    String text;
-    String author;
-    String thumbnailFileName;
-    String thumbnailUrlStr;
-    String imagesFileNameStr;
-    String imagesUrlStr;
+    String title="";
+    String description="";
+    String text="";
+    String author="";
+
+    String   thumbnailUrl="";
+    String   thumbnailFileName="";
+    String[] imagesUrls;
+    String[] imagesFilesNames;
+
     List<String> keywords = new ArrayList<>();
     long date;
     NewsPaper newsPaper;
-    String matchingArticlesIds = null;
+    String matchingArticlesIds = "";
     List<Article> matchingArticles = new ArrayList<>();
     Category category;
 
@@ -134,55 +136,10 @@ public class Article implements Serializable{
         this.newsPaper = newsPaper;
     }
 
-    public String getImagesFileNameStr() {
-        return imagesFileNameStr;
-    }
-
-    public void setImagesFileNameStr(String imagesFileNameStr) {
-        this.imagesFileNameStr = imagesFileNameStr;
-    }
-
-    public String[] getImagesFilesNames() {
-
-        String[] imagesFileName = this.imagesFileNameStr.split(",");
-
-        return imagesFileName;
-    }
-
-    public void setImagesFilesNames(String[] imagesFileName) {
-
-        // PREPARE IMAGESNAMES
-        StringBuilder imagesNamesStringBuilder = new StringBuilder();
-        for(String imageName : imagesFileName ){
-            imagesNamesStringBuilder.append( imageName+"," );
-        }
-        this.imagesFileNameStr = imagesNamesStringBuilder.toString();
-    }
 
 
-    public String getImagesUrlStr() {
-        return imagesUrlStr;
-    }
-
-    public void setImagesUrlStr(String imagesUrlStr) {
-        this.imagesUrlStr = imagesUrlStr;
-    }
-
-    public String[] getImagesUrls(){
-
-        String[] imagesUrls = imagesUrlStr.split(",");
-        return imagesUrls;
-    }
 
 
-    public void setImagesUrls( String[] imagesUrls ){
-
-        StringBuilder stringBuilder = new StringBuilder();
-        for(String imageUrl : imagesUrls ){
-            stringBuilder.append( imageUrl + ",");
-        }
-        this.imagesUrlStr = stringBuilder.toString();
-    }
 
     public List<Article> getMatchingArticles() {
         return matchingArticles;
@@ -221,6 +178,14 @@ public class Article implements Serializable{
         this.category = category;
     }
 
+    public String getThumbnailUrl() {
+        return thumbnailUrl;
+    }
+
+    public void setThumbnailUrl(String thumbnailUrl) {
+        this.thumbnailUrl = thumbnailUrl;
+    }
+
     public String getThumbnailFileName() {
         return thumbnailFileName;
     }
@@ -229,12 +194,19 @@ public class Article implements Serializable{
         this.thumbnailFileName = thumbnailFileName;
     }
 
-    public String getThumbnailUrlStr() {
-        return thumbnailUrlStr;
+    public String[] getImagesUrls() {
+        return imagesUrls;
     }
 
-    public void setThumbnailUrlStr(String thumbnailUrlStr) {
-        this.thumbnailUrlStr = thumbnailUrlStr;
+    public void setImagesUrls(String[] imagesUrls) {
+        this.imagesUrls = imagesUrls;
     }
 
+    public String[] getImagesFilesNames() {
+        return imagesFilesNames;
+    }
+
+    public void setImagesFilesNames(String[] imagesFilesNames) {
+        this.imagesFilesNames = imagesFilesNames;
+    }
 }

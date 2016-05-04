@@ -77,12 +77,9 @@ public class ArticlesLoaderTest extends AndroidTestCase{
                 dummyBitmap.getPixels(pixelsFromArticle, 0, dummyBitmap.getWidth(), 0, 0, dummyBitmap.getWidth(), dummyBitmap.getHeight());
                 dummyBitmap = Bitmap.createScaledBitmap( dummyBitmap , 600 , 600 , false);
 
-
                 assertTrue( dummyBitmap.getWidth()  == bitmapFromFile.getWidth() );
                 assertTrue( dummyBitmap.getHeight() == bitmapFromFile.getHeight() );
-
                 //assertTrue( Arrays.equals(pixelsFromFile, pixelsFromArticle) );
-
 
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
@@ -99,7 +96,7 @@ public class ArticlesLoaderTest extends AndroidTestCase{
 
 
         Article article = new Article();
-        article.setThumbnailUrlStr("http://www.casiocd.co.uk/images/cbmslogo.jpg");
+        article.setThumbnailUrl("http://www.casiocd.co.uk/images/cbmslogo.jpg");
         String[] imagesUrls = new String[]{
                     "http://www.casiomedia.co.uk/medialibrary/76511..jpg",
                     "http://www.casiomedia.co.uk/medialibrary/76547..jpg",
@@ -188,7 +185,6 @@ public class ArticlesLoaderTest extends AndroidTestCase{
             article.setDescription("description'quote" + a);
             article.setText("text " + a);
             article.setAuthor("author " + a);
-            article.setImagesFileNameStr("file" + a + ".jpg,file2_" + a + ".jpg");
             article.setNewsPaper(Article.NewsPaper.THE_GUARDIAN);
             article.setMatchingArticlesIds("51 " + a + ",52 " + a + ",53 " + a);
             article.setDate(now);
@@ -212,7 +208,7 @@ public class ArticlesLoaderTest extends AndroidTestCase{
         Bitmap[] dummyBitmaps = createDummyBitmaps();
 
         Article article = new Article();
-        article.setThumbnailUrlStr("http://www.casiocd.co.uk/images/cbmslogo.jpg");
+        article.setThumbnailUrl("http://www.casiocd.co.uk/images/cbmslogo.jpg");
         String[] imagesUrls = new String[]{
                 "http://www.casiomedia.co.uk/medialibrary/76511..jpg",
                 "http://www.casiomedia.co.uk/medialibrary/76547..jpg",
@@ -236,7 +232,7 @@ public class ArticlesLoaderTest extends AndroidTestCase{
 
         //
         article = new Article();
-        article.setThumbnailUrlStr("http://www.casiocd.co.uk/images/cbmslogo.jpg");
+        article.setThumbnailUrl("http://www.casiocd.co.uk/images/cbmslogo.jpg");
         imagesUrls = new String[]{
                 "http://www.casiomedia.co.uk/medialibrary/76511..jpg",
                 "http://www.casiomedia.co.uk/medialibrary/76547..jpg",

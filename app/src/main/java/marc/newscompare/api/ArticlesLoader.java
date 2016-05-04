@@ -188,9 +188,9 @@ public abstract class ArticlesLoader {
         if(  article!=null ) {
 
             // SAVE THUMBNAIL
-            if (article.getThumbnailUrlStr() != null) {
+            if (article.getThumbnailUrl() != null) {
                 try {
-                    URL url = new URL(article.getThumbnailUrlStr());
+                    URL url = new URL(article.getThumbnailUrl());
                     Bitmap bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream());
                     article.setThumbnailFileName(saveImage(bitmap, true));
                 } catch (MalformedURLException e) {

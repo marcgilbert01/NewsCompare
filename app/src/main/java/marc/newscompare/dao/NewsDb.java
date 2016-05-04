@@ -22,6 +22,24 @@ public class NewsDb extends SQLiteOpenHelper {
     static private final String ARTICLES_TABLE = "articles";
     static private final String KEYWORDS_TABLE = "keywords";
 
+
+    /*
+    "id INTEGER PRIMARY KEY," +
+            "title          TEXT," +
+            "description    TEXT," +
+            "text           TEXT," +
+            "author         TEXT," +
+            "thumbnailUrl   TEXT," +
+            "thumbnailFileName TEXT," +
+            "imagesUrls     TEXT" +
+            "imagesFileName TEXT," +
+            "newsPaper    INTEGER," +
+            "matchingArticlesIds INTEGER," +
+            "date         INTEGER," +
+            "createdAt    INTEGER" +
+    */
+
+
     public NewsDb(Context context , File dbDirectory) {
         super(context, dbDirectory+"/"+NEWS_DB_NAME, null, 1);
     }
@@ -37,12 +55,14 @@ public class NewsDb extends SQLiteOpenHelper {
                 "description    TEXT," +
                 "text           TEXT," +
                 "author         TEXT," +
+                "thumbnailUrl   TEXT," +
                 "thumbnailFileName TEXT," +
+                "imagesUrl      TEXT," +
                 "imagesFileName TEXT," +
-                "newsPaper    INTEGER," +
+                "newsPaper      INTEGER," +
                 "matchingArticlesIds INTEGER," +
-                "date         INTEGER," +
-                "createdAt    INTEGER" +
+                "date           INTEGER," +
+                "createdAt      INTEGER" +
                 ")");
         // CREATE KEYWORDS DB
         db.execSQL(" CREATE TABLE IF NOT EXISTS " + KEYWORDS_TABLE + " ( " +
@@ -88,27 +108,31 @@ public class NewsDb extends SQLiteOpenHelper {
                     if (a == 0) {
                         stringBuilder.append("SELECT " +
                                 "       NULL                      AS id," +
-                                "       '" + StringEscapeUtils.escapeSql(article.getTitle()) + "'       AS title," +
-                                "       '" + StringEscapeUtils.escapeSql(article.getDescription()) + "'  AS description," +
-                                "       '" + StringEscapeUtils.escapeSql(article.getText()) + "'         AS text," +
-                                "       '" + StringEscapeUtils.escapeSql(article.getAuthor()) + "'       AS author," +
-                                "       '" + article.getThumbnailFileName() + "'     AS thumbnailFileName," +
-                                "       '" + article.getImagesFileNameStr() + "'     AS imagesFileName," +
-                                "       '" + article.getNewsPaper().ordinal() + "' AS newsPaper," +
-                                "       '" + article.getMatchingArticlesIds() + "' AS matchingArticlesIds," +
-                                "        " + article.getDate() + "           AS date," +
-                                "        " + System.currentTimeMillis() + "  AS createdAt ");
+                                "       '" + prepareStringForInsert(article.getTitle()) + "'       AS title," +
+                                "       '" + prepareStringForInsert(article.getDescription()) + "' AS description," +
+                                "       '" + prepareStringForInsert(article.getText()) + "'        AS text," +
+                                "       '" + prepareStringForInsert(article.getAuthor()) + "'      AS author," +
+                                "       '" + prepareStringForInsert(article.getThumbnailUrl())     + "'   AS thumbnailUrl," +
+                                "       '" + prepareStringForInsert(article.getThumbnailFileName())   + "'   AS thumbnailFileName," +
+                                "       '" + prepareStringForInsert(arrayToString(article.getImagesUrls()))  + "'   AS imagesUrl," +
+                                "       '" + prepareStringForInsert(arrayToString(article.getImagesFilesNames()))   + "'   AS imagesFileName," +
+                                "       '" + article.getNewsPaper().ordinal() + "'   AS newsPaper," +
+                                "       '" + prepareStringForInsert(article.getMatchingArticlesIds()) + "'   AS matchingArticlesIds," +
+                                "        " + article.getDate() + "                   AS date," +
+                                "        " + System.currentTimeMillis() + "          AS createdAt ");
                     } else {
                         stringBuilder.append("UNION ALL SELECT " +
                                 "       NULL ," +
-                                "       '" + StringEscapeUtils.escapeSql(article.getTitle()) + "'," +
-                                "       '" + StringEscapeUtils.escapeSql(article.getDescription()) + "'," +
-                                "       '" + StringEscapeUtils.escapeSql(article.getText()) + "'," +
-                                "       '" + StringEscapeUtils.escapeSql(article.getAuthor()) + "'," +
-                                "       '" + article.getThumbnailFileName() + "'," +
-                                "       '" + article.getImagesFileNameStr() + "'," +
+                                "       '" + prepareStringForInsert(article.getTitle())  + "'," +
+                                "       '" + prepareStringForInsert(article.getDescription()) + "'," +
+                                "       '" + prepareStringForInsert(article.getText())   + "'," +
+                                "       '" + prepareStringForInsert(article.getAuthor()) + "'," +
+                                "       '" + prepareStringForInsert(article.getThumbnailUrl())  + "'," +
+                                "       '" + prepareStringForInsert(article.getThumbnailFileName())   + "'," +
+                                "       '" + prepareStringForInsert(arrayToString( article.getImagesUrls() ))         + "'," +
+                                "       '" + prepareStringForInsert(arrayToString( article.getImagesFilesNames() ))   + "'," +
                                 "       '" + article.getNewsPaper().ordinal() + "'," +
-                                "       '" + article.getMatchingArticlesIds() + "'," +
+                                "       '" + prepareStringForInsert(article.getMatchingArticlesIds()) + "'," +
                                 "        " + article.getDate() + "," +
                                 "        " + System.currentTimeMillis() + " ");
                     }
@@ -119,6 +143,17 @@ public class NewsDb extends SQLiteOpenHelper {
 
         }
     }
+
+
+    static private String prepareStringForInsert(String strToPrepare){
+
+        String str = null;
+        if( strToPrepare!=null ){
+            str = StringEscapeUtils.escapeSql(strToPrepare);
+        }
+        return str;
+    }
+
 
 
     public List<Article> getArticles(Long dateFrom, Article.NewsPaper newsPaper , Boolean includeKeywords) {
@@ -163,21 +198,20 @@ public class NewsDb extends SQLiteOpenHelper {
             // IS A KEYWORD
             if( cursor.getInt(0)==previousArticleId ){
                 Article article = articles.get(articles.size()-1);
-                article.getKeywords().add( cursor.getString( 12 ) );
+                article.getKeywords().add( cursor.getString( 14 ) );
             }
             // IS AN ARTICLE
             else {
 
                 Article article = readArticle(cursor);
                 if (includeKeywords){
-                    article.getKeywords().add(cursor.getString(12));
+                    article.getKeywords().add(cursor.getString( 14 ));
                 }
                 articles.add(article);
                 previousArticleId = article.getId();
             }
 
         }
-
         cursor.close();
 
         return articles;
@@ -366,13 +400,13 @@ public class NewsDb extends SQLiteOpenHelper {
             // IS A KEYWORD
             if( cursor.getInt(0)==previousArticleId ){
                 Article article = articles.get(articles.size()-1);
-                article.getKeywords().add( cursor.getString( 11 ) );
+                article.getKeywords().add( cursor.getString( 14 ) );
             }
             // IS AN ARTICLE
             else {
 
                 Article article = readArticle(cursor);
-                article.getKeywords().add(cursor.getString(11));
+                article.getKeywords().add(cursor.getString(14));
                 articles.add(article);
                 previousArticleId = article.getId();
             }
@@ -482,17 +516,20 @@ public class NewsDb extends SQLiteOpenHelper {
 
 
     private Article readArticle(Cursor cursor) {
+
         Article article = new Article();
         article.setId(cursor.getInt(0));
         article.setTitle(cursor.getString(1));
         article.setDescription(cursor.getString(2));
         article.setText(cursor.getString(3));
         article.setAuthor(cursor.getString(4));
-        article.setThumbnailFileName(cursor.getString(5));
-        article.setImagesFileNameStr(cursor.getString(6));
-        article.setNewsPaper(Article.NewsPaper.values()[cursor.getInt(7)]);
-        article.setMatchingArticlesIds(cursor.getString(8));
-        article.setDate(cursor.getLong(9));
+        article.setThumbnailUrl( cursor.getString(5) );
+        article.setThumbnailFileName(cursor.getString(6));
+        article.setImagesUrls( stringToArray(cursor.getString(7)) );
+        article.setImagesFilesNames( stringToArray(cursor.getString(8)) );
+        article.setNewsPaper(Article.NewsPaper.values()[cursor.getInt(9)]);
+        article.setMatchingArticlesIds(cursor.getString(10));
+        article.setDate(cursor.getLong(11));
 
         return article;
     }
@@ -513,8 +550,8 @@ public class NewsDb extends SQLiteOpenHelper {
 
         SQLiteDatabase sqLiteDatabase = getWritableDatabase();
         sqLiteDatabase.execSQL("UPDATE " + ARTICLES_TABLE + " SET " +
-                "imagesFileName = '" + article.getImagesFileNameStr() + "' ," +
-                "thumbnailFileName = '" + article.getThumbnailUrlStr() + "' " +
+                "imagesFileName = '" +  arrayToString( article.getImagesFilesNames() ) + "' ," +
+                "thumbnailFileName = '" + article.getThumbnailUrl() + "' " +
                 "WHERE id = " + article.getId());
 
     }
@@ -577,6 +614,31 @@ public class NewsDb extends SQLiteOpenHelper {
     }
 
 
+
+
+    static public String arrayToString(String[] array){
+
+        StringBuilder stringBuilder = new StringBuilder();
+
+        if( array!=null && array.length>0 ){
+
+            for(String str : array ){
+                stringBuilder.append( str + "," );
+            }
+        }
+        return stringBuilder.toString();
+    }
+
+
+    static public String[] stringToArray(String str){
+
+        String[] array = str.split(",");
+        if( array.length==1 &&  array[0].equals("") ){
+            array = null;
+        }
+
+        return array;
+    }
 
 
 }

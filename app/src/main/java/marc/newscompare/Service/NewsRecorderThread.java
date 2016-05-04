@@ -112,7 +112,7 @@ public class NewsRecorderThread extends Thread{
             newsDb.deleteArticles(aWeekAgo);
             articlesLoader.deletesImages(aWeekAgo);
 
-            // LOAD THUMBNAIL
+            // LOAD IMAGES
             List<Article> articlesWithoutImageFileName = newsDb.getArticlesWithoutImageFileName();
             for(Article articleWithoutImage : articlesWithoutImageFileName ){
                 articleWithoutImage = articlesLoader.saveArticleImages(articleWithoutImage);

@@ -92,7 +92,7 @@ public class TheDailyMailArticlesLoader extends ArticlesLoader{
                 Element elementMediaContent = (Element) nodeListMediaContent.item(b);
                 imagesUrls[b] = elementMediaContent.getAttribute("url");
                 if (b == 0) {
-                    article.setThumbnailUrlStr(imagesUrls[b]);
+                    article.setThumbnailUrl(imagesUrls[b]);
                 }
             }
             article.setImagesUrls(imagesUrls);
